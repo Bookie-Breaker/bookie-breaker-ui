@@ -1,0 +1,44 @@
+version: "3"
+
+env:
+  MISE_CONFIG_FILE: .config/mise.toml
+  LEFTHOOK_CONFIG: .config/lefthook.yml
+
+tasks:
+  bootstrap:
+    desc: Install all tools and activate git hooks
+    cmds:
+      - mise install
+      - lefthook install
+      - pnpm install
+
+  dev:
+    desc: Run SvelteKit dev server with HMR
+    cmds:
+      - pnpm dev
+
+  lint:
+    desc: Run linters
+    cmds:
+      - pnpm run lint
+      - pnpm exec prettier --check .
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - pnpm exec vitest run
+
+  test:e2e:
+    desc: Run end-to-end tests
+    cmds:
+      - pnpm exec playwright test
+
+  build:
+    desc: Build for production
+    cmds:
+      - pnpm run build
+
+  check:
+    desc: Run svelte-check
+    cmds:
+      - pnpm exec svelte-check
