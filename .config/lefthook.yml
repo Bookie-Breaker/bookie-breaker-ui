@@ -6,6 +6,8 @@ pre-commit:
     # Auto-fix formatting issues before linting sees the code
     - name: format
       group:
+        exclude:
+          - pnpm-lock.yaml
         parallel: true
         jobs:
           # --- Standard Formatters ---
@@ -41,6 +43,7 @@ pre-commit:
       exclude:
         - .claude/**
         - CLAUDE.md
+        - pnpm-lock.yaml
       group:
         parallel: true
         jobs:
