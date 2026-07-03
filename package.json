@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --config .config/prettierrc.json --write .",
+    "format:check": "prettier --config .config/prettierrc.json --check .",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "check": "svelte-check --tsconfig ./tsconfig.json"
