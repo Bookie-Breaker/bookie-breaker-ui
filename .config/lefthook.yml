@@ -34,7 +34,7 @@ pre-commit:
           # --- Language-Specific Formatters ---
           - name: prettier-ts
             glob: "*.{ts,svelte,css}"
-            run: pnpm exec prettier --write {staged_files}
+            run: pnpm exec prettier --config .config/prettierrc.json --write {staged_files}
             stage_fixed: true
 
     # === Job 2: Lint ===
