@@ -81,7 +81,12 @@ const movement = [
     current_line: -4.0,
     closing_line: null,
     line_snapshots: [
-      { line_value: -3.5, odds_american: -110, timestamp: "2026-07-05T09:00:00Z", is_opening: true },
+      {
+        line_value: -3.5,
+        odds_american: -110,
+        timestamp: "2026-07-05T09:00:00Z",
+        is_opening: true
+      },
       { line_value: -4.0, odds_american: -108, timestamp: "2026-07-05T11:00:00Z" }
     ]
   }
@@ -226,7 +231,12 @@ const dashboard = {
     count: 1,
     by_league: { NBA: 1 },
     avg_edge_pct: 4.2,
-    top_edge: { id: EDGE_ID, selection: "LAL -3.5", edge_percentage: 4.2, sportsbook_key: "draftkings" }
+    top_edge: {
+      id: EDGE_ID,
+      selection: "LAL -3.5",
+      edge_percentage: 4.2,
+      sportsbook_key: "draftkings"
+    }
   },
   open_bets: { count: 2, total_exposure_units: 3.0, games_pending: 2 },
   performance_summary: {
@@ -258,14 +268,22 @@ const server = createServer((req, res) => {
     res.end(JSON.stringify(body))
   }
   const envelope = (data) => respond(200, { data, meta })
-  const paged = (data) => respond(200, { data, meta: { ...meta, pagination: { limit: 50, has_more: false, next_cursor: null } } })
-  const notFound = () => respond(404, { error: { code: "RESOURCE_NOT_FOUND", message: `no stub for ${path}` }, meta })
+  const paged = (data) =>
+    respond(200, {
+      data,
+      meta: { ...meta, pagination: { limit: 50, has_more: false, next_cursor: null } }
+    })
+  const notFound = () =>
+    respond(404, { error: { code: "RESOURCE_NOT_FOUND", message: `no stub for ${path}` }, meta })
 
   if (req.method === "POST" && path === "/api/v1/emulator/bets") {
     let raw = ""
     req.on("data", (chunk) => (raw += chunk))
     req.on("end", () => {
-      lastBet = { idempotencyKey: req.headers["x-idempotency-key"] ?? null, body: JSON.parse(raw || "{}") }
+      lastBet = {
+        idempotencyKey: req.headers["x-idempotency-key"] ?? null,
+        body: JSON.parse(raw || "{}")
+      }
       respond(201, { data: placedBet, meta })
     })
     return
@@ -278,7 +296,13 @@ const server = createServer((req, res) => {
   if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
   if (path === "/api/v1/agent/slate") return envelope(slate)
   if (path === "/api/v1/emulator/bets") return paged(lastBet ? [placedBet] : [])
-  if (path === `/api/v1/emulator/bets/${BET_ID}`) return envelope({ ...placedBet, closing_line_value: null, closing_odds_american: null, grade: null })
+  if (path === `/api/v1/emulator/bets/${BET_ID}`)
+    return envelope({
+      ...placedBet,
+      closing_line_value: null,
+      closing_odds_american: null,
+      grade: null
+    })
   if (path === "/api/v1/emulator/performance") return envelope(performance)
   if (path === "/api/v1/emulator/performance/calibration") return envelope(calibration)
   if (path === "/api/v1/emulator/performance/breakdown") return envelope(breakdown)

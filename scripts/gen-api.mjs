@@ -39,7 +39,11 @@ for (const spec of specs) {
   })
 }
 
-execFileSync("pnpm", ["exec", "prettier", "--config", ".config/prettierrc.json", "--write", outDir], {
-  stdio: "inherit"
-})
+execFileSync(
+  "pnpm",
+  ["exec", "prettier", "--config", ".config/prettierrc.json", "--write", outDir],
+  {
+    stdio: "inherit"
+  }
+)
 console.log(`Generated ${specs.length} type modules.`)
