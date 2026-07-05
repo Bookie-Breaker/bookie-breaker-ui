@@ -411,6 +411,8 @@ export interface components {
       /** Expires At */
       expires_at: string
       game: components["schemas"]["EdgeGame"] | null
+      /** Game External Id */
+      game_external_id: string
       /** Game Id */
       game_id: string
       /** Id */
