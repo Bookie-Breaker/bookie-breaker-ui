@@ -26,9 +26,16 @@
       ? (deriveSide(
           initial.market_type,
           initial.selection,
-          initial.game?.home_team.name ?? initial.game?.home_team.abbreviation,
-          initial.game?.away_team.name ?? initial.game?.away_team.abbreviation
-        ) ?? "")
+          initial.game?.home_team.abbreviation,
+          initial.game?.away_team.abbreviation
+        ) ??
+          deriveSide(
+            initial.market_type,
+            initial.selection,
+            initial.game?.home_team.name,
+            initial.game?.away_team.name
+          ) ??
+          "")
       : ""
   )
   let sportsbookKey = $state(initial?.sportsbook_key ?? "")
