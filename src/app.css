@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@import "@skeletonlabs/skeleton";
+@import "@skeletonlabs/skeleton/themes/cerberus";
+
+@source "../node_modules/@skeletonlabs/skeleton-svelte/dist";
+
+@plugin "@tailwindcss/forms";
+
+/* Dark mode follows the data-mode attribute set on <html> (see ThemeToggle) */
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
