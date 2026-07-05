@@ -1,0 +1,318 @@
+/**
+ * Canned-envelope backend for Playwright: serves the agent/emulator/lines
+ * shapes the specs need so e2e runs with no real stack (all data fetching
+ * is server-side, so page.route() cannot mock it). Records the last bet
+ * placement at GET /__last-bet for idempotency assertions.
+ */
+import { createServer } from "node:http"
+
+const PORT = Number(process.env.STUB_PORT ?? 9200)
+
+const meta = { timestamp: "2026-07-05T12:00:00Z", request_id: "stub-request" }
+
+const EDGE_ID = "11111111-1111-4111-8111-111111111111"
+const GAME_ID = "22222222-2222-4222-8222-222222222222"
+const BET_ID = "33333333-3333-4333-8333-333333333333"
+
+const edgeListItem = {
+  id: EDGE_ID,
+  game_id: GAME_ID,
+  league: "NBA",
+  home_team: "LAL",
+  away_team: "BOS",
+  scheduled_start: "2026-07-05T19:00:00Z",
+  market_type: "SPREAD",
+  selection: "LAL -3.5",
+  predicted_probability: 0.562,
+  implied_probability: 0.52,
+  edge_percentage: 4.2,
+  expected_value: 0.081,
+  odds_american: -110,
+  sportsbook_key: "draftkings",
+  kelly_fraction: 0.08,
+  recommended_stake: 1.5,
+  confidence: 0.85,
+  detected_at: "2026-07-05T12:00:00Z",
+  expires_at: "2026-07-05T19:00:00Z",
+  is_stale: false,
+  has_paper_bet: false,
+  paper_bet_id: null
+}
+
+const edgeDetail = {
+  ...edgeListItem,
+  game_external_id: "odds-stub-game-1",
+  odds_decimal: 1.909,
+  sportsbook_id: null,
+  simulation_probability: 0.548,
+  game: {
+    scheduled_start: "2026-07-05T19:00:00Z",
+    status: "SCHEDULED",
+    home_team: { id: "t1", name: "Los Angeles Lakers", abbreviation: "LAL" },
+    away_team: { id: "t2", name: "Boston Celtics", abbreviation: "BOS" }
+  },
+  prediction: {
+    id: "p1",
+    model_version_id: "m1",
+    adjustment_magnitude: 0.014,
+    feature_importance: { pace_differential: 0.18, offensive_rating_delta: 0.31, rest_days: 0.07 }
+  },
+  betting_line: {
+    id: "l1",
+    line_value: -3.5,
+    odds_american: -110,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-05T11:55:00Z"
+  },
+  paper_bet: null,
+  analysis: null
+}
+
+delete edgeDetail.home_team
+delete edgeDetail.away_team
+
+const movement = [
+  {
+    game_id: "odds-stub-game-1",
+    sportsbook_key: "draftkings",
+    market_type: "SPREAD",
+    selection: "LAL -3.5",
+    opening_line: -3.5,
+    current_line: -4.0,
+    closing_line: null,
+    line_snapshots: [
+      {
+        line_value: -3.5,
+        odds_american: -110,
+        timestamp: "2026-07-05T09:00:00Z",
+        is_opening: true
+      },
+      { line_value: -4.0, odds_american: -108, timestamp: "2026-07-05T11:00:00Z" }
+    ]
+  }
+]
+
+const performance = {
+  period: { from: "2026-06-01T00:00:00Z", to: "2026-07-05T12:00:00Z", window: "all_time" },
+  total_bets: 137,
+  total_wins: 71,
+  total_losses: 63,
+  total_pushes: 3,
+  win_rate: 0.53,
+  roi: 0.062,
+  total_wagered_units: 180,
+  total_profit_units: 11.2,
+  total_wagered_dollars: 18000,
+  total_profit_dollars: 1120,
+  avg_odds_american: -108,
+  avg_edge_percentage: 3.9,
+  avg_clv: 0.014,
+  longest_win_streak: 6,
+  longest_loss_streak: 4,
+  brier_score: 0.213,
+  calibration_error: 0.031
+}
+
+const calibration = {
+  period: performance.period,
+  n_bins: 10,
+  total_graded: 134,
+  brier_score: 0.213,
+  calibration_error: 0.031,
+  bins: Array.from({ length: 10 }, (_, index) => {
+    const counts = [0, 0, 0, 2, 9, 41, 52, 24, 6, 0]
+    const lower = index / 10
+    return {
+      lower,
+      upper: lower + 0.1,
+      bet_count: counts[index],
+      avg_predicted_probability: counts[index] ? lower + 0.05 : null,
+      actual_win_rate: counts[index] ? Math.min(1, lower + 0.04) : null
+    }
+  })
+}
+
+const breakdown = {
+  group_by: "market_type",
+  breakdowns: [
+    {
+      group: "SPREAD",
+      total_bets: 61,
+      wins: 33,
+      losses: 27,
+      pushes: 1,
+      win_rate: 0.55,
+      roi: 0.062,
+      total_profit_units: 4.1,
+      avg_clv: 0.014,
+      avg_edge_percentage: 3.8
+    }
+  ]
+}
+
+const history = {
+  interval: "per_bet",
+  snapshots: Array.from({ length: 12 }, (_, index) => ({
+    timestamp: `2026-06-${String(index + 1).padStart(2, "0")}T12:00:00Z`,
+    bankroll_units: 100 + index,
+    bankroll_dollars: (100 + index) * 100,
+    total_bets: index + 1,
+    total_wins: Math.ceil((index + 1) / 2),
+    total_losses: Math.floor((index + 1) / 2),
+    win_rate: 0.52,
+    roi: index / 200,
+    units_won: index,
+    avg_clv: 0.012
+  }))
+}
+
+const placedBet = {
+  id: BET_ID,
+  game_id: GAME_ID,
+  game_external_id: "odds-stub-game-1",
+  edge_id: EDGE_ID,
+  prediction_id: null,
+  league: "NBA",
+  market_type: "SPREAD",
+  selection: "LAL -3.5",
+  side: "HOME",
+  line_value: -3.5,
+  sportsbook_id: null,
+  sportsbook_key: "draftkings",
+  odds_american: -110,
+  odds_decimal: 1.909,
+  stake: 1.5,
+  stake_dollars: 150,
+  predicted_probability: 0.562,
+  edge_percentage: 4.2,
+  kelly_fraction: 0.08,
+  reasoning: null,
+  result: "PENDING",
+  profit_loss: null,
+  profit_loss_dollars: null,
+  clv: null,
+  placed_at: "2026-07-05T12:05:00Z",
+  graded_at: null
+}
+
+const slate = {
+  date: "2026-07-05",
+  games: [
+    {
+      game_id: GAME_ID,
+      league: "NBA",
+      scheduled_start: "2026-07-05T19:00:00Z",
+      status: "SCHEDULED",
+      home_team: { id: "t1", name: "Los Angeles Lakers", abbreviation: "LAL" },
+      away_team: { id: "t2", name: "Boston Celtics", abbreviation: "BOS" },
+      prediction: {
+        id: "p1",
+        market_type: "SPREAD",
+        selection: "LAL -3.5",
+        predicted_probability: 0.562,
+        predicted_at: "2026-07-05T12:00:00Z"
+      },
+      edges: [
+        {
+          id: EDGE_ID,
+          market_type: "SPREAD",
+          selection: "LAL -3.5",
+          edge_percentage: 4.2,
+          sportsbook_key: "draftkings",
+          has_paper_bet: false
+        }
+      ]
+    }
+  ]
+}
+
+const dashboard = {
+  active_edges: {
+    count: 1,
+    by_league: { NBA: 1 },
+    avg_edge_pct: 4.2,
+    top_edge: {
+      id: EDGE_ID,
+      selection: "LAL -3.5",
+      edge_percentage: 4.2,
+      sportsbook_key: "draftkings"
+    }
+  },
+  open_bets: { count: 2, total_exposure_units: 3.0, games_pending: 2 },
+  performance_summary: {
+    today: { bets: 2, wins: 1, losses: 1, profit_units: 0.4 },
+    this_week: { bets: 9, wins: 5, losses: 4, profit_units: 1.2 },
+    all_time: { bets: 137, wins: 71, losses: 63, win_rate: 0.53, roi: 0.062, profit_units: 11.2 }
+  },
+  pipeline_status: {
+    last_run: {
+      pipeline_run_id: "r1",
+      status: "COMPLETED",
+      completed_at: "2026-07-05T11:00:00Z",
+      games_processed: 4,
+      edges_found: 1,
+      bets_placed: 1
+    },
+    next_scheduled_run: "2026-07-05T20:00:00Z"
+  }
+}
+
+let lastBet = null
+
+const server = createServer((req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`)
+  const path = url.pathname
+
+  const respond = (status, body) => {
+    res.writeHead(status, { "content-type": "application/json" })
+    res.end(JSON.stringify(body))
+  }
+  const envelope = (data) => respond(200, { data, meta })
+  const paged = (data) =>
+    respond(200, {
+      data,
+      meta: { ...meta, pagination: { limit: 50, has_more: false, next_cursor: null } }
+    })
+  const notFound = () =>
+    respond(404, { error: { code: "RESOURCE_NOT_FOUND", message: `no stub for ${path}` }, meta })
+
+  if (req.method === "POST" && path === "/api/v1/emulator/bets") {
+    let raw = ""
+    req.on("data", (chunk) => (raw += chunk))
+    req.on("end", () => {
+      lastBet = {
+        idempotencyKey: req.headers["x-idempotency-key"] ?? null,
+        body: JSON.parse(raw || "{}")
+      }
+      respond(201, { data: placedBet, meta })
+    })
+    return
+  }
+
+  if (path === "/__last-bet") return respond(200, lastBet ?? {})
+  if (path === "/api/v1/agent/dashboard") return envelope(dashboard)
+  if (path === "/api/v1/agent/alerts") return paged([])
+  if (path === "/api/v1/agent/edges") return paged([edgeListItem])
+  if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
+  if (path === "/api/v1/agent/slate") return envelope(slate)
+  if (path === "/api/v1/emulator/bets") return paged(lastBet ? [placedBet] : [])
+  if (path === `/api/v1/emulator/bets/${BET_ID}`)
+    return envelope({
+      ...placedBet,
+      closing_line_value: null,
+      closing_odds_american: null,
+      grade: null
+    })
+  if (path === "/api/v1/emulator/performance") return envelope(performance)
+  if (path === "/api/v1/emulator/performance/calibration") return envelope(calibration)
+  if (path === "/api/v1/emulator/performance/breakdown") return envelope(breakdown)
+  if (path === "/api/v1/emulator/bankroll/history") return envelope(history)
+  if (path === "/api/v1/lines/current") return paged([])
+  if (path === "/api/v1/lines/game/odds-stub-game-1/movement") return envelope(movement)
+  if (path.startsWith("/api/v1/sim/games/")) return notFound() // simulations expired
+  return notFound()
+})
+
+server.listen(PORT, () => {
+  console.log(`stub backend listening on :${PORT}`)
+})
