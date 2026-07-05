@@ -11,12 +11,18 @@
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import ErrorPanel from "$lib/components/common/ErrorPanel.svelte"
   import StatCard from "$lib/components/common/StatCard.svelte"
+  import { pageContext } from "$lib/stores/page-context.svelte"
   import { preferences } from "$lib/stores/preferences.svelte"
   import { formatProbability, formatUnits } from "$lib/utils/format"
 
   let { data } = $props()
 
   const theme = $derived(chartTheme(preferences.mode))
+
+  $effect(() => {
+    pageContext.set({ type: "performance" })
+    return () => pageContext.clear()
+  })
 
   function setGroupBy(value: string): void {
     const params = new URLSearchParams(page.url.searchParams)

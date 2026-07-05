@@ -8,12 +8,18 @@
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import Markdown from "$lib/components/common/Markdown.svelte"
   import StatCard from "$lib/components/common/StatCard.svelte"
+  import { pageContext } from "$lib/stores/page-context.svelte"
   import { preferences } from "$lib/stores/preferences.svelte"
   import { formatAmerican, formatDateTime, formatProbability } from "$lib/utils/format"
 
   let { data } = $props()
 
   const edge = $derived(data.edge)
+
+  $effect(() => {
+    pageContext.set({ type: "edge", edgeId: edge.id, label: edge.selection })
+    return () => pageContext.clear()
+  })
   const theme = $derived(chartTheme(preferences.mode))
   const matchup = $derived(
     edge.game

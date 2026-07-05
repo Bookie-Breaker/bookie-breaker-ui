@@ -7,10 +7,12 @@ import { http, HttpResponse } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
 
+import { POST as chatPost } from "../../src/routes/api/chat/+server"
 import { GET as eventsGet } from "../../src/routes/api/events/+server"
 import { GET as distributionsGet } from "../../src/routes/api/simulations/[gameId]/distributions/+server"
 import { POST as betsPost } from "../../src/routes/api/bets/+server"
 
+const AGENT = "http://localhost:8006"
 const EMULATOR = "http://localhost:8005"
 const SIM = "http://localhost:8003"
 
@@ -112,6 +114,49 @@ describe("GET /api/simulations/[gameId]/distributions", () => {
     )
     const response = await distributionsGet(makeEvent({ params: { gameId: "game-2" } }))
     expect(response.status).toBe(200)
+  })
+})
+
+describe("POST /api/chat", () => {
+  const chatRequest = () =>
+    new Request("http://ui/api/chat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ analysis_type: "PERFORMANCE_REVIEW", question: "How am I doing?" })
+    })
+
+  it("pipes an SSE stream through untouched", async () => {
+    const sse =
+      'event: chunk\ndata: {"text": "Well"}\n\nevent: done\ndata: {"data": {}, "meta": {}}\n\n'
+    server.use(
+      http.post(`${AGENT}/api/v1/agent/analysis/stream`, () =>
+        HttpResponse.text(sse, { headers: { "content-type": "text/event-stream" } })
+      )
+    )
+    const response = await chatPost(makeEvent({ request: chatRequest() }))
+    expect(response.headers.get("content-type")).toContain("text/event-stream")
+    expect(await response.text()).toBe(sse)
+  })
+
+  it("passes a JSON fallback through with its status", async () => {
+    server.use(
+      http.post(`${AGENT}/api/v1/agent/analysis/stream`, () =>
+        HttpResponse.json(
+          { error: { code: "DEPENDENCY_ERROR", message: "LLM analysis failed" }, meta: {} },
+          { status: 502 }
+        )
+      )
+    )
+    const response = await chatPost(makeEvent({ request: chatRequest() }))
+    expect(response.status).toBe(502)
+    const body = (await response.json()) as { error: { code: string } }
+    expect(body.error.code).toBe("DEPENDENCY_ERROR")
+  })
+
+  it("maps an unreachable agent to a 502 envelope", async () => {
+    server.use(http.post(`${AGENT}/api/v1/agent/analysis/stream`, () => HttpResponse.error()))
+    const response = await chatPost(makeEvent({ request: chatRequest() }))
+    expect(response.status).toBe(502)
   })
 })
 
