@@ -370,7 +370,15 @@ export interface components {
       /** Game Id */
       game_id: string
     }
-    /** SimulationResultData */
+    /**
+     * SimulationResultData
+     * @description Aggregated simulation result.
+     *
+     *     ``spread_push_probabilities`` / ``total_push_probabilities`` carry
+     *     P(margin == line) / P(total == line) for INTEGER lines only — half-point
+     *     lines cannot push and are omitted rather than serialized as 0.0. Cover
+     *     and over probabilities are unchanged: strictly-greater-than semantics.
+     */
     SimulationResultData: {
       /** Away Win Probability */
       away_win_probability: number
@@ -393,8 +401,16 @@ export interface components {
       spread_cover_probabilities: {
         [key: string]: number
       }
+      /** Spread Push Probabilities */
+      spread_push_probabilities?: {
+        [key: string]: number
+      }
       /** Total Over Probabilities */
       total_over_probabilities: {
+        [key: string]: number
+      }
+      /** Total Push Probabilities */
+      total_push_probabilities?: {
         [key: string]: number
       }
     }

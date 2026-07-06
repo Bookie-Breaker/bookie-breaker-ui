@@ -494,6 +494,10 @@ export interface components {
       total_score?: number
       margin?: number
       overtime?: boolean
+      /** @description Score at the end of regulation time. Null/absent means the final score is the settlement-relevant score. Populated for soccer matches decided in extra time (ADR-027). */
+      regulation_home_score?: number | null
+      /** @description Score at the end of regulation time. Null/absent means the final score is the settlement-relevant score. */
+      regulation_away_score?: number | null
       /** Format: date-time */
       completed_at?: string
       period_scores?: components["schemas"]["PeriodScore"][]
@@ -622,7 +626,7 @@ export interface components {
       name?: string
       abbreviation?: string
       /** @enum {string} */
-      sport?: "FOOTBALL" | "BASKETBALL" | "BASEBALL"
+      sport?: "FOOTBALL" | "BASKETBALL" | "BASEBALL" | "SOCCER" | "HOCKEY"
       current_season?: number
       /** Format: date */
       season_start?: string

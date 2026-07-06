@@ -739,7 +739,7 @@ export interface components {
        * Side
        * @enum {string}
        */
-      side: "HOME" | "AWAY" | "OVER" | "UNDER"
+      side: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER"
       /** Sportsbook Key */
       sportsbook_key?: string | null
       /**
@@ -830,7 +830,18 @@ export interface operations {
     parameters: {
       query?: {
         /** @description Filter by league. */
-        league?: "NFL" | "NBA" | "MLB" | "NCAA_FB" | "NCAA_BB" | "NCAA_BSB" | null
+        league?:
+          | "NFL"
+          | "NBA"
+          | "MLB"
+          | "NCAA_FB"
+          | "NCAA_BB"
+          | "NCAA_BSB"
+          | "FIFA_WC"
+          | "EPL"
+          | "NHL"
+          | "NCAA_HKY"
+          | null
         /** @description Filter by market type. */
         market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
         /** @description Filter by result. */
@@ -1002,7 +1013,18 @@ export interface operations {
     parameters: {
       query?: {
         /** @description Filter by league. */
-        league?: "NFL" | "NBA" | "MLB" | "NCAA_FB" | "NCAA_BB" | "NCAA_BSB" | null
+        league?:
+          | "NFL"
+          | "NBA"
+          | "MLB"
+          | "NCAA_FB"
+          | "NCAA_BB"
+          | "NCAA_BSB"
+          | "FIFA_WC"
+          | "EPL"
+          | "NHL"
+          | "NCAA_HKY"
+          | null
         /** @description Filter by market type. */
         market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
         /** @description Start date (ISO 8601) on placed_at. */
@@ -1078,7 +1100,18 @@ export interface operations {
     parameters: {
       query?: {
         /** @description Filter by league. */
-        league?: "NFL" | "NBA" | "MLB" | "NCAA_FB" | "NCAA_BB" | "NCAA_BSB" | null
+        league?:
+          | "NFL"
+          | "NBA"
+          | "MLB"
+          | "NCAA_FB"
+          | "NCAA_BB"
+          | "NCAA_BSB"
+          | "FIFA_WC"
+          | "EPL"
+          | "NHL"
+          | "NCAA_HKY"
+          | null
         /** @description Filter by market type. */
         market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
         /** @description Start date (ISO 8601) on placed_at. */

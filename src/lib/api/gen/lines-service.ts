@@ -227,7 +227,7 @@ export interface components {
         | "LIVE"
       selection: string
       /** @enum {string} */
-      side?: "HOME" | "AWAY" | "OVER" | "UNDER" | "YES" | "NO"
+      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | "YES" | "NO"
       line_value?: number | null
       odds_american: number
       odds_decimal: number
@@ -467,7 +467,7 @@ export interface operations {
         market_type?: string
         /** @description Filter by sportsbook key (e.g. draftkings, pinnacle). */
         sportsbook?: string
-        /** @description Filter by selection side (e.g. home, away, over, under). */
+        /** @description Filter by selection side (e.g. home, away, draw, over, under). */
         side?: string
         /** @description Maximum number of items to return per page. */
         limit?: components["parameters"]["Limit"]

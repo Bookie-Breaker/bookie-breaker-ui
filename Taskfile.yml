@@ -21,7 +21,7 @@ tasks:
     desc: Run linters
     cmds:
       - pnpm run lint
-      - pnpm exec prettier --check .
+      - pnpm exec prettier --config .config/prettierrc.json --check .
 
   test:
     desc: Run unit tests
