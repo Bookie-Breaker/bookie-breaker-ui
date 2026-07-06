@@ -401,6 +401,8 @@ export interface components {
       true_shooting_pct?: number
       turnover_pct?: number
       offensive_rebound_pct?: number
+      /** @description Opponent-adjusted efficiency margin (NCAA_BB via CBBD; absent for leagues without an adjusted-ratings source). */
+      adjusted_efficiency_margin?: number
     }
     /** @description Soccer-specific team stats (SOCCER-sport leagues only; ADR-026). Strengths are multiplicative factors relative to the competition average (1.0 = average), shrunk toward 1.0 by matches played to damp small samples. */
     SoccerStats: {
@@ -425,6 +427,28 @@ export interface components {
       team_era?: number
       team_fip?: number
       bullpen_era?: number
+    }
+    /** @description Football-specific team stats (FOOTBALL-sport leagues only; ADR-026). EPA metrics come from nflverse team stats (NFL) and are absent for NCAA_FB, which carries SP+ ratings from CFBD instead. */
+    FootballStats: {
+      points_per_game?: number
+      points_allowed_per_game?: number
+      drives_per_game?: number
+      points_per_drive_off?: number
+      points_per_drive_def?: number
+      epa_per_play_off?: number
+      epa_per_play_def?: number
+      turnover_margin_per_game?: number
+      sp_plus_rating?: number
+    }
+    /** @description Hockey-specific team stats (HOCKEY-sport leagues only; ADR-026). */
+    HockeyStats: {
+      goals_for_per_game?: number
+      goals_against_per_game?: number
+      shots_for_per_game?: number
+      shots_against_per_game?: number
+      power_play_pct?: number
+      penalty_kill_pct?: number
+      team_save_pct?: number
     }
     /** @description Probable starting pitcher for a game (BASEBALL leagues; present once announced, absent otherwise). Season pitching stats are embedded so consumers need no extra lookup. */
     ProbablePitcher: {
@@ -456,6 +480,8 @@ export interface components {
         advanced?: components["schemas"]["AdvancedStats"]
         soccer?: components["schemas"]["SoccerStats"]
         baseball?: components["schemas"]["BaseballStats"]
+        football?: components["schemas"]["FootballStats"]
+        hockey?: components["schemas"]["HockeyStats"]
       }
       home_away_splits?: {
         home?: components["schemas"]["SplitRecord"]
