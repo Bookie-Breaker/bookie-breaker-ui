@@ -8,7 +8,19 @@
 
   let { data } = $props()
 
-  const LEAGUES = ["", "NBA", "NFL", "MLB", "NCAA_BB", "NCAA_FB", "NCAA_BSB"]
+  const LEAGUES = [
+    "",
+    "NBA",
+    "NFL",
+    "MLB",
+    "FIFA_WC",
+    "EPL",
+    "NHL",
+    "NCAA_BB",
+    "NCAA_FB",
+    "NCAA_BSB",
+    "NCAA_HKY"
+  ]
   const MARKETS = ["", "SPREAD", "TOTAL", "MONEYLINE"]
   type SortKey = "edge" | "ev" | "confidence" | "start"
 

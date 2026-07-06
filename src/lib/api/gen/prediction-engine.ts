@@ -377,6 +377,12 @@ export interface components {
       predicted_probability: number
       /** Selection */
       selection: string
+      /**
+       * Side
+       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions created before Phase 6.
+       * @enum {string|null}
+       */
+      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | null
       /** Simulation Probability */
       simulation_probability: number | null
     }
@@ -421,6 +427,12 @@ export interface components {
       predicted_probability: number
       /** Selection */
       selection: string
+      /**
+       * Side
+       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions created before Phase 6.
+       * @enum {string|null}
+       */
+      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | null
       /** Simulation Probability */
       simulation_probability: number | null
     }
