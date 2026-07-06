@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { deriveSide } from "$lib/utils/bet-side"
+import { deriveSide, sidesForMarket } from "$lib/utils/bet-side"
 import { formatAmerican, formatPoints, formatProbability, formatUnits } from "$lib/utils/format"
 import {
   americanToDecimal,
@@ -70,5 +70,23 @@ describe("deriveSide", () => {
   it("returns null when ambiguous so the form asks the user", () => {
     expect(deriveSide("SPREAD", "Somebody -3.5", "LAL", "BOS")).toBeNull()
     expect(deriveSide("TOTAL", "224.5", null, null)).toBeNull()
+  })
+
+  it("derives DRAW from a three-way moneyline Draw selection (ADR-027)", () => {
+    expect(deriveSide("MONEYLINE", "Draw", "Arsenal", "Chelsea")).toBe("DRAW")
+    expect(deriveSide("MONEYLINE", " draw ", null, null)).toBe("DRAW")
+  })
+
+  it("never derives DRAW off the moneyline", () => {
+    expect(deriveSide("SPREAD", "Draw", "Arsenal", "Chelsea")).toBeNull()
+    expect(deriveSide("TOTAL", "Draw", "Arsenal", "Chelsea")).toBeNull()
+  })
+})
+
+describe("sidesForMarket", () => {
+  it("offers DRAW only for moneylines", () => {
+    expect(sidesForMarket("MONEYLINE")).toEqual(["HOME", "AWAY", "DRAW"])
+    expect(sidesForMarket("SPREAD")).toEqual(["HOME", "AWAY"])
+    expect(sidesForMarket("TOTAL")).toEqual(["OVER", "UNDER"])
   })
 })

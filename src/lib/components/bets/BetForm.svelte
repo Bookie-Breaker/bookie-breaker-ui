@@ -2,13 +2,11 @@
   import { invalidate } from "$app/navigation"
 
   import type { EdgeDetail, Envelope, BetData, PlaceBetRequest } from "$lib/api/envelope"
-  import { deriveSide, type BetSide } from "$lib/utils/bet-side"
+  import { deriveSide, sidesForMarket, type BetSide } from "$lib/utils/bet-side"
   import { formatAmerican } from "$lib/utils/format"
   import { newIdempotencyKey } from "$lib/utils/idempotency"
 
   let { edge = null }: { edge?: EdgeDetail | null } = $props()
-
-  const SIDES: BetSide[] = ["HOME", "AWAY", "OVER", "UNDER"]
 
   // One key per form session, reused across retries of the same submission.
   const idempotencyKey = newIdempotencyKey()
@@ -38,6 +36,13 @@
           "")
       : ""
   )
+  // Sides follow the market: DRAW exists only on (three-way) moneylines
+  // (ADR-027), OVER/UNDER only on totals.
+  const sides = $derived(sidesForMarket(marketType))
+  $effect(() => {
+    if (side && !sides.includes(side)) side = ""
+  })
+
   let sportsbookKey = $state(initial?.sportsbook_key ?? "")
   let stake = $state(initial?.recommended_stake ?? 1)
   let predictedProbability = $state(initial?.predicted_probability ?? 0.55)
@@ -122,7 +127,7 @@
     <span class="label-text text-xs">Side</span>
     <select class="select" bind:value={side} required>
       <option value="" disabled>Choose…</option>
-      {#each SIDES as option (option)}
+      {#each sides as option (option)}
         <option value={option}>{option}</option>
       {/each}
     </select>
