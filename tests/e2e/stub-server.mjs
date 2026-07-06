@@ -13,6 +13,8 @@ const meta = { timestamp: "2026-07-05T12:00:00Z", request_id: "stub-request" }
 const EDGE_ID = "11111111-1111-4111-8111-111111111111"
 const GAME_ID = "22222222-2222-4222-8222-222222222222"
 const BET_ID = "33333333-3333-4333-8333-333333333333"
+const SOCCER_EDGE_ID = "44444444-4444-4444-8444-444444444444"
+const SOCCER_GAME_ID = "55555555-5555-4555-8555-555555555555"
 
 const edgeListItem = {
   id: EDGE_ID,
@@ -70,6 +72,50 @@ const edgeDetail = {
 
 delete edgeDetail.home_team
 delete edgeDetail.away_team
+
+// Three-way soccer moneyline (ADR-027): the Draw outcome is one more selection.
+const soccerEdgeListItem = {
+  ...edgeListItem,
+  id: SOCCER_EDGE_ID,
+  game_id: SOCCER_GAME_ID,
+  league: "EPL",
+  home_team: "ARS",
+  away_team: "CHE",
+  market_type: "MONEYLINE",
+  selection: "Draw",
+  predicted_probability: 0.31,
+  implied_probability: 0.27,
+  edge_percentage: 3.8,
+  odds_american: 250,
+  recommended_stake: 1.0
+}
+
+const soccerEdgeDetail = {
+  ...soccerEdgeListItem,
+  game_external_id: "odds-stub-game-2",
+  odds_decimal: 3.5,
+  sportsbook_id: null,
+  simulation_probability: 0.29,
+  game: {
+    scheduled_start: "2026-07-05T19:00:00Z",
+    status: "SCHEDULED",
+    home_team: { id: "t3", name: "Arsenal", abbreviation: "ARS" },
+    away_team: { id: "t4", name: "Chelsea", abbreviation: "CHE" }
+  },
+  prediction: null,
+  betting_line: {
+    id: "l2",
+    line_value: null,
+    odds_american: 250,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-05T11:55:00Z"
+  },
+  paper_bet: null,
+  analysis: null
+}
+
+delete soccerEdgeDetail.home_team
+delete soccerEdgeDetail.away_team
 
 const movement = [
   {
@@ -258,6 +304,7 @@ const dashboard = {
 }
 
 let lastBet = null
+const placedBets = []
 
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
@@ -284,16 +331,19 @@ const server = createServer((req, res) => {
         idempotencyKey: req.headers["x-idempotency-key"] ?? null,
         body: JSON.parse(raw || "{}")
       }
+      placedBets.push(lastBet)
       respond(201, { data: placedBet, meta })
     })
     return
   }
 
   if (path === "/__last-bet") return respond(200, lastBet ?? {})
+  if (path === "/__placed-bets") return respond(200, placedBets)
   if (path === "/api/v1/agent/dashboard") return envelope(dashboard)
   if (path === "/api/v1/agent/alerts") return paged([])
-  if (path === "/api/v1/agent/edges") return paged([edgeListItem])
+  if (path === "/api/v1/agent/edges") return paged([edgeListItem, soccerEdgeListItem])
   if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
+  if (path === `/api/v1/agent/edges/${SOCCER_EDGE_ID}`) return envelope(soccerEdgeDetail)
   if (path === "/api/v1/agent/slate") return envelope(slate)
   if (path === "/api/v1/emulator/bets") return paged(lastBet ? [placedBet] : [])
   if (path === `/api/v1/emulator/bets/${BET_ID}`)

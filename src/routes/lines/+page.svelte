@@ -9,6 +9,7 @@
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import { preferences } from "$lib/stores/preferences.svelte"
   import { formatAmerican, formatLine, formatProbability } from "$lib/utils/format"
+  import { bestOddsBySelection, selectionKey } from "$lib/utils/lines"
 
   let { data } = $props()
 
@@ -32,7 +33,7 @@
   interface GameGroup {
     gameId: string
     snapshots: LineSnapshot[]
-    bestOdds: number
+    bestOdds: Map<string, number>
   }
 
   const games = $derived.by(() => {
@@ -45,7 +46,9 @@
     return [...grouped.entries()].map(([gameId, snapshots]): GameGroup => ({
       gameId,
       snapshots,
-      bestOdds: Math.max(...snapshots.map((s) => s.odds_american))
+      // Best price per (market, selection): Home/Draw/Away and Over/Under
+      // each get their own highlight instead of one per-game winner.
+      bestOdds: bestOddsBySelection(snapshots)
     }))
   })
 
@@ -151,7 +154,8 @@
                   <td class="p-2">{snapshot.selection}</td>
                   <td class="p-2 text-right font-mono">{formatLine(snapshot.line_value)}</td>
                   <td
-                    class="p-2 text-right font-mono {snapshot.odds_american === game.bestOdds
+                    class="p-2 text-right font-mono {snapshot.odds_american ===
+                    game.bestOdds.get(selectionKey(snapshot))
                       ? 'text-success-500 font-bold'
                       : ''}"
                   >
