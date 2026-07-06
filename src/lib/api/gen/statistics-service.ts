@@ -402,6 +402,42 @@ export interface components {
       turnover_pct?: number
       offensive_rebound_pct?: number
     }
+    /** @description Soccer-specific team stats (SOCCER-sport leagues only; ADR-026). Strengths are multiplicative factors relative to the competition average (1.0 = average), shrunk toward 1.0 by matches played to damp small samples. */
+    SoccerStats: {
+      goals_for_per_match?: number
+      goals_against_per_match?: number
+      attack_strength?: number
+      defense_strength?: number
+      draws?: number
+      form_goals_for_last5?: number
+      form_goals_against_last5?: number
+      form_points_last5?: number
+    }
+    /** @description Baseball-specific team stats (BASEBALL-sport leagues only; ADR-026). FIP and wOBA are computed in-service from official counting stats using published seasonal constants. */
+    BaseballStats: {
+      runs_scored_per_game?: number
+      runs_allowed_per_game?: number
+      team_woba?: number
+      team_obp?: number
+      team_slg?: number
+      batting_strikeout_pct?: number
+      batting_walk_pct?: number
+      team_era?: number
+      team_fip?: number
+      bullpen_era?: number
+    }
+    /** @description Probable starting pitcher for a game (BASEBALL leagues; present once announced, absent otherwise). Season pitching stats are embedded so consumers need no extra lookup. */
+    ProbablePitcher: {
+      name?: string
+      external_id?: string
+      /** @description Throwing hand, L or R. */
+      throws?: string
+      era?: number
+      fip?: number
+      /** @description Strikeout rate minus walk rate. */
+      k_bb_pct?: number
+      innings_pitched?: number
+    }
     SplitRecord: {
       wins?: number
       losses?: number
@@ -418,6 +454,8 @@ export interface components {
         offensive?: components["schemas"]["OffensiveStats"]
         defensive?: components["schemas"]["DefensiveStats"]
         advanced?: components["schemas"]["AdvancedStats"]
+        soccer?: components["schemas"]["SoccerStats"]
+        baseball?: components["schemas"]["BaseballStats"]
       }
       home_away_splits?: {
         home?: components["schemas"]["SplitRecord"]
@@ -518,6 +556,8 @@ export interface components {
       season_type?: "PRESEASON" | "REGULAR" | "POSTSEASON" | "OFFSEASON"
       home_score?: number | null
       away_score?: number | null
+      home_probable_pitcher?: components["schemas"]["ProbablePitcher"]
+      away_probable_pitcher?: components["schemas"]["ProbablePitcher"]
       result?: components["schemas"]["GameResult"]
     }
     GameListResponse: {
