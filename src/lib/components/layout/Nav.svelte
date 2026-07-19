@@ -5,14 +5,18 @@
     HouseIcon,
     LayersIcon,
     ListOrderedIcon,
+    RadioIcon,
     ReceiptIcon,
     TrendingUpIcon
   } from "@lucide/svelte"
   import { page } from "$app/state"
 
+  import LiveStatusDot from "$lib/components/layout/LiveStatusDot.svelte"
+
   const links = [
     { label: "Home", href: "/", icon: HouseIcon },
     { label: "Edges", href: "/edges", icon: TrendingUpIcon },
+    { label: "Live", href: "/live", icon: RadioIcon },
     { label: "Slate", href: "/slate", icon: ListOrderedIcon },
     { label: "Lines", href: "/lines", icon: ChartCandlestickIcon },
     { label: "Parlay", href: "/parlay", icon: LayersIcon },
@@ -38,6 +42,9 @@
     >
       <Icon class="size-4 shrink-0" />
       <span class="hidden md:inline">{link.label}</span>
+      {#if link.href === "/live"}
+        <LiveStatusDot compact />
+      {/if}
     </a>
   {/each}
 </nav>

@@ -978,6 +978,12 @@ export interface components {
        * Format: uuid
        */
       game_id: string
+      /**
+       * Is Live
+       * @description In-game placement: the game may be IN_PROGRESS and live lines are preferred at odds capture.
+       * @default false
+       */
+      is_live: boolean
       /** Kelly Fraction */
       kelly_fraction?: number | null
       /**
@@ -1149,6 +1155,8 @@ export interface operations {
         min_edge?: number | null
         /** @description true for parlay parents only, false to exclude them. */
         is_parlay?: boolean | null
+        /** @description true for live bets only, false for pregame only. */
+        is_live?: boolean | null
         /** @description open for pending, graded for completed, or all. */
         status?: "open" | "graded" | "all"
         /** @description Max results per page. */

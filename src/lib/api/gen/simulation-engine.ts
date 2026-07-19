@@ -59,7 +59,10 @@ export interface paths {
      * @description Run a Monte Carlo simulation for a game.
      *
      *     Returns a cached result when an identical parameters_hash exists and
-     *     force_refresh is false.
+     *     force_refresh is false. With ``live_state`` (Phase 7 Wave 2) the run
+     *     simulates the remainder of the game from the given in-game state; live
+     *     runs get their own parameters_hash, so they never collide with pregame
+     *     cache entries.
      */
     post: operations["create_simulation_api_v1_sim_simulations_post"]
     delete?: never
@@ -190,6 +193,7 @@ export interface components {
       config?: components["schemas"]["SimulationConfigIn"] | null
       /** Game Id */
       game_id: string
+      live_state?: components["schemas"]["LiveStateIn"] | null
     }
     /** BatchGameResult */
     BatchGameResult: {
@@ -366,6 +370,46 @@ export interface components {
       /** Simulations Today */
       simulations_today: number
     }
+    /**
+     * LiveStateIn
+     * @description Current game state for live re-simulation (Phase 7 Wave 2).
+     *
+     *     Simulates the remainder of the game and adds the current score as an
+     *     offset. Bounds (fraction_remaining in (0, 1], scores >= 0, sport-specific
+     *     refinements in their legal ranges) are enforced in the service layer as
+     *     422 UNPROCESSABLE_ENTITY per the Wave 2 contract — deliberately not as
+     *     pydantic Field constraints, which this service's RequestValidationError
+     *     handler would surface as 400 VALIDATION_ERROR instead.
+     *
+     *     Sport-specific optional fields: ``bases``/``outs``/``half`` (baseball;
+     *     bases is a 3-char occupancy string like "1-3", half is "TOP"/"BOTTOM",
+     *     period is the inning number), ``possession``/``down``/``yardline``
+     *     (football; possession is "HOME"/"AWAY").
+     */
+    LiveStateIn: {
+      /** Away Score */
+      away_score: number
+      /** Bases */
+      bases?: string | null
+      /** Clock Seconds */
+      clock_seconds?: number | null
+      /** Down */
+      down?: number | null
+      /** Fraction Remaining */
+      fraction_remaining: number
+      /** Half */
+      half?: string | null
+      /** Home Score */
+      home_score: number
+      /** Outs */
+      outs?: number | null
+      /** Period */
+      period?: number | null
+      /** Possession */
+      possession?: string | null
+      /** Yardline */
+      yardline?: number | null
+    }
     /** Meta */
     Meta: {
       /** Request Id */
@@ -434,6 +478,7 @@ export interface components {
       force_refresh: boolean
       /** Game Id */
       game_id: string
+      live_state?: components["schemas"]["LiveStateIn"] | null
     }
     /**
      * SimulationResultData

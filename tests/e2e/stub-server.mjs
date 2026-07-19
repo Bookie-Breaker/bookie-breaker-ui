@@ -312,6 +312,184 @@ const parlayDetail = {
   ]
 }
 
+// Phase 7 Wave 2: one FIFA_WC game in progress with live (SharpAPI-sourced)
+// lines and a live edge. expires_at is computed per request so countdown
+// chips always have a future, short-expiry target at test runtime.
+const LIVE_GAME_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+const LIVE_EDGE_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+const LIVE_BET_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+
+const liveExpiry = () => new Date(Date.now() + 5 * 60_000).toISOString()
+
+const liveLines = () => {
+  const base = {
+    game_id: LIVE_GAME_ID,
+    sportsbook_id: "sb-1",
+    line_value: null,
+    timestamp: new Date().toISOString(),
+    is_live: true,
+    is_opening: false,
+    is_closing: false
+  }
+  return [
+    {
+      ...base,
+      id: "ll-1",
+      sportsbook_key: "draftkings",
+      market_type: "MONEYLINE",
+      selection: "Argentina",
+      side: "HOME",
+      odds_american: -105,
+      odds_decimal: 1.952,
+      implied_probability: 0.512
+    },
+    {
+      ...base,
+      id: "ll-2",
+      sportsbook_key: "fanduel",
+      market_type: "MONEYLINE",
+      selection: "Argentina",
+      side: "HOME",
+      odds_american: -110,
+      odds_decimal: 1.909,
+      implied_probability: 0.524
+    },
+    {
+      ...base,
+      id: "ll-3",
+      sportsbook_key: "draftkings",
+      market_type: "MONEYLINE",
+      selection: "Draw",
+      side: "DRAW",
+      odds_american: 260,
+      odds_decimal: 3.6,
+      implied_probability: 0.278
+    },
+    {
+      ...base,
+      id: "ll-4",
+      sportsbook_key: "draftkings",
+      market_type: "MONEYLINE",
+      selection: "England",
+      side: "AWAY",
+      odds_american: 320,
+      odds_decimal: 4.2,
+      implied_probability: 0.238
+    },
+    {
+      ...base,
+      id: "ll-5",
+      sportsbook_key: "draftkings",
+      market_type: "TOTAL",
+      selection: "Over 2.5",
+      side: "OVER",
+      line_value: 2.5,
+      odds_american: 130,
+      odds_decimal: 2.3,
+      implied_probability: 0.435
+    },
+    {
+      ...base,
+      id: "ll-6",
+      sportsbook_key: "fanduel",
+      market_type: "TOTAL",
+      selection: "Over 2.5",
+      side: "OVER",
+      line_value: 2.5,
+      odds_american: 125,
+      odds_decimal: 2.25,
+      implied_probability: 0.444
+    }
+  ]
+}
+
+// is_live rides on the runtime payload ahead of the agent spec regen — the
+// UI filters client-side on the field (see src/lib/utils/live.ts).
+const liveEdgeListItem = () => ({
+  ...edgeListItem,
+  id: LIVE_EDGE_ID,
+  game_id: LIVE_GAME_ID,
+  league: "FIFA_WC",
+  home_team: "ARG",
+  away_team: "ENG",
+  scheduled_start: liveExpiry(),
+  market_type: "MONEYLINE",
+  selection: "Argentina",
+  predicted_probability: 0.55,
+  implied_probability: 0.512,
+  edge_percentage: 3.8,
+  expected_value: 0.074,
+  odds_american: -105,
+  recommended_stake: 0,
+  kelly_fraction: 0.04,
+  confidence: 0.7,
+  detected_at: new Date().toISOString(),
+  expires_at: liveExpiry(),
+  is_live: true
+})
+
+const liveEdgeDetail = () => {
+  const item = liveEdgeListItem()
+  delete item.home_team
+  delete item.away_team
+  return {
+    ...item,
+    game_external_id: "wc-final-live",
+    odds_decimal: 1.952,
+    sportsbook_id: null,
+    simulation_probability: 0.54,
+    game: {
+      scheduled_start: "2026-07-19T18:00:00Z",
+      status: "IN_PROGRESS",
+      home_team: { id: "t7", name: "Argentina", abbreviation: "ARG" },
+      away_team: { id: "t8", name: "England", abbreviation: "ENG" }
+    },
+    prediction: null,
+    betting_line: {
+      id: "l5",
+      line_value: null,
+      odds_american: -105,
+      sportsbook_key: "draftkings",
+      timestamp: new Date().toISOString()
+    },
+    paper_bet: null,
+    analysis: null
+  }
+}
+
+// Canned graded-ledger live bet: the ledger filter/badge spec needs one
+// live row that exists without any placement having happened first.
+const liveLedgerBet = {
+  id: LIVE_BET_ID,
+  game_id: LIVE_GAME_ID,
+  game_external_id: "wc-final-live",
+  edge_id: LIVE_EDGE_ID,
+  prediction_id: null,
+  league: "FIFA_WC",
+  market_type: "MONEYLINE",
+  selection: "Argentina",
+  side: "HOME",
+  line_value: null,
+  sportsbook_id: null,
+  sportsbook_key: "draftkings",
+  odds_american: -105,
+  odds_decimal: 1.952,
+  stake: 1.0,
+  stake_dollars: 100,
+  predicted_probability: 0.55,
+  edge_percentage: 3.8,
+  kelly_fraction: 0.04,
+  reasoning: null,
+  is_parlay: false,
+  is_live: true,
+  result: "PENDING",
+  profit_loss: null,
+  profit_loss_dollars: null,
+  clv: null,
+  placed_at: "2026-07-19T18:20:00Z",
+  graded_at: null
+}
+
 const movement = [
   {
     game_id: "odds-stub-game-1",
@@ -428,6 +606,8 @@ const placedBet = {
   edge_percentage: 4.2,
   kelly_fraction: 0.08,
   reasoning: null,
+  is_parlay: false,
+  is_live: false,
   result: "PENDING",
   profit_loss: null,
   profit_loss_dollars: null,
@@ -530,7 +710,8 @@ const server = createServer((req, res) => {
         body: JSON.parse(raw || "{}")
       }
       placedBets.push(lastBet)
-      respond(201, { data: placedBet, meta })
+      // Echo is_live so live placements come back flagged (Phase 7 Wave 2).
+      respond(201, { data: { ...placedBet, is_live: lastBet.body.is_live === true }, meta })
     })
     return
   }
@@ -567,7 +748,14 @@ const server = createServer((req, res) => {
   if (path === "/api/v1/agent/dashboard") return envelope(dashboard)
   if (path === "/api/v1/agent/alerts") return paged([])
   if (path === "/api/v1/agent/edges")
-    return paged([edgeListItem, soccerEdgeListItem, fifaEdgeMlListItem, fifaEdgeTotalListItem])
+    return paged([
+      edgeListItem,
+      soccerEdgeListItem,
+      fifaEdgeMlListItem,
+      fifaEdgeTotalListItem,
+      liveEdgeListItem()
+    ])
+  if (path === `/api/v1/agent/edges/${LIVE_EDGE_ID}`) return envelope(liveEdgeDetail())
   if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
   if (path === `/api/v1/agent/edges/${SOCCER_EDGE_ID}`) return envelope(soccerEdgeDetail)
   if (path === `/api/v1/agent/edges/${FIFA_EDGE_ML_ID}`) return envelope(fifaEdgeMlDetail)
@@ -575,7 +763,24 @@ const server = createServer((req, res) => {
   if (path === `/api/v1/emulator/parlays/${PARLAY_BET_ID}`) return envelope(parlayDetail)
   if (path === `/api/v1/emulator/bets/${PARLAY_BET_ID}`) return envelope(parlayDetail)
   if (path === "/api/v1/agent/slate") return envelope(slate)
-  if (path === "/api/v1/emulator/bets") return paged(lastBet ? [placedBet] : [])
+  if (path === "/api/v1/emulator/bets") {
+    const ledger = [liveLedgerBet, ...(lastBet ? [{ ...placedBet, is_live: false }] : [])]
+    const isLive = url.searchParams.get("is_live")
+    const filtered =
+      isLive === "true"
+        ? ledger.filter((bet) => bet.is_live)
+        : isLive === "false"
+          ? ledger.filter((bet) => !bet.is_live)
+          : ledger
+    return paged(filtered)
+  }
+  if (path === `/api/v1/emulator/bets/${LIVE_BET_ID}`)
+    return envelope({
+      ...liveLedgerBet,
+      closing_line_value: null,
+      closing_odds_american: null,
+      grade: null
+    })
   if (path === `/api/v1/emulator/bets/${BET_ID}`)
     return envelope({
       ...placedBet,
@@ -587,7 +792,11 @@ const server = createServer((req, res) => {
   if (path === "/api/v1/emulator/performance/calibration") return envelope(calibration)
   if (path === "/api/v1/emulator/performance/breakdown") return envelope(breakdown)
   if (path === "/api/v1/emulator/bankroll/history") return envelope(history)
-  if (path === "/api/v1/lines/current") return paged([])
+  if (path === "/api/v1/lines/current") {
+    // is_live=true serves the in-progress FIFA_WC game's live frames (ADR-031).
+    if (url.searchParams.get("is_live") === "true") return paged(liveLines())
+    return paged([])
+  }
   if (path === "/api/v1/lines/game/odds-stub-game-1/movement") return envelope(movement)
   if (path.startsWith("/api/v1/sim/games/")) return notFound() // simulations expired
   return notFound()

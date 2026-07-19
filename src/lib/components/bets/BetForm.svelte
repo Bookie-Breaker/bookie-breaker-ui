@@ -6,7 +6,8 @@
   import { formatAmerican } from "$lib/utils/format"
   import { newIdempotencyKey } from "$lib/utils/idempotency"
 
-  let { edge = null }: { edge?: EdgeDetail | null } = $props()
+  /** live marks an in-game placement (Phase 7 Wave 2): the bet is sent with is_live: true. */
+  let { edge = null, live = false }: { edge?: EdgeDetail | null; live?: boolean } = $props()
 
   // One key per form session, reused across retries of the same submission.
   const idempotencyKey = newIdempotencyKey()
@@ -70,7 +71,8 @@
       predicted_probability: predictedProbability,
       edge_percentage: edgePercentage,
       stake,
-      kelly_fraction: edge?.kelly_fraction ?? null
+      kelly_fraction: edge?.kelly_fraction ?? null,
+      is_live: live
     }
     try {
       const response = await fetch("/api/bets", {
@@ -100,6 +102,12 @@
 </script>
 
 <form class="grid gap-3 sm:grid-cols-2" onsubmit={submit}>
+  {#if live}
+    <p class="preset-tonal-error col-span-full rounded p-2 text-sm" data-testid="live-bet-notice">
+      <span class="badge preset-filled-error-500 mr-1 text-xs">LIVE</span>
+      In-game bet — odds are re-captured from the live feed at placement.
+    </p>
+  {/if}
   {#if edge}
     <p class="preset-tonal-primary col-span-full rounded p-2 text-sm">
       Betting edge <span class="font-mono">{edge.selection}</span> @ {edge.sportsbook_key}

@@ -15,6 +15,9 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
   }
   const status = url.searchParams.get("status")
   if (status === "open" || status === "graded") filters.status = status
+  const isLive = url.searchParams.get("is_live")
+  if (isLive === "true") filters.is_live = true
+  else if (isLive === "false") filters.is_live = false
   try {
     return json(await getBets(fetch, filters))
   } catch (error) {
