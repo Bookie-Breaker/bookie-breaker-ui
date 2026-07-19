@@ -7,6 +7,8 @@ import type {
   EdgeListItem,
   Envelope,
   PageEnvelope,
+  ParlayEvaluateRequest,
+  ParlayEvaluationData,
   PipelineRunAccepted,
   PipelineRunData,
   SlateData
@@ -68,6 +70,18 @@ export function acknowledgeAlert(
   return upstream(base(), `/api/v1/agent/alerts/${encodeURIComponent(alertId)}/acknowledge`, {
     fetchFn,
     method: "PUT"
+  })
+}
+
+/** Evaluate a 2-6 leg team-market parlay with correlation-aware math (ADR-030). */
+export function evaluateParlay(
+  fetchFn: typeof fetch,
+  body: ParlayEvaluateRequest
+): Promise<Envelope<ParlayEvaluationData>> {
+  return upstream(base(), "/api/v1/agent/parlays/evaluate", {
+    fetchFn,
+    method: "POST",
+    body
   })
 }
 

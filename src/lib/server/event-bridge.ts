@@ -12,6 +12,7 @@ import { redisUrl } from "$lib/server/env"
 
 export const CHANNELS = [
   "events:edge.detected",
+  "events:parlay.detected",
   "events:prediction.completed",
   "events:lines.updated",
   "events:game.completed",

@@ -3,6 +3,7 @@
     ChartCandlestickIcon,
     ChartLineIcon,
     HouseIcon,
+    LayersIcon,
     ListOrderedIcon,
     ReceiptIcon,
     TrendingUpIcon
@@ -14,6 +15,7 @@
     { label: "Edges", href: "/edges", icon: TrendingUpIcon },
     { label: "Slate", href: "/slate", icon: ListOrderedIcon },
     { label: "Lines", href: "/lines", icon: ChartCandlestickIcon },
+    { label: "Parlay", href: "/parlay", icon: LayersIcon },
     { label: "Performance", href: "/performance", icon: ChartLineIcon },
     { label: "Bets", href: "/bets", icon: ReceiptIcon }
   ]

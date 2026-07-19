@@ -117,6 +117,201 @@ const soccerEdgeDetail = {
 delete soccerEdgeDetail.home_team
 delete soccerEdgeDetail.away_team
 
+// Two FIFA_WC edges on ONE game: the same-game parlay the builder spec uses.
+const FIFA_EDGE_ML_ID = "66666666-6666-4666-8666-666666666666"
+const FIFA_EDGE_TOTAL_ID = "77777777-7777-4777-8777-777777777777"
+const FIFA_GAME_ID = "88888888-8888-4888-8888-888888888888"
+const PARLAY_BET_ID = "99999999-9999-4999-8999-999999999999"
+
+const fifaGame = {
+  scheduled_start: "2026-07-10T19:00:00Z",
+  status: "SCHEDULED",
+  home_team: { id: "t5", name: "France", abbreviation: "FRA" },
+  away_team: { id: "t6", name: "Morocco", abbreviation: "MAR" }
+}
+
+const fifaEdgeMlListItem = {
+  ...edgeListItem,
+  id: FIFA_EDGE_ML_ID,
+  game_id: FIFA_GAME_ID,
+  league: "FIFA_WC",
+  home_team: "FRA",
+  away_team: "MAR",
+  scheduled_start: "2026-07-10T19:00:00Z",
+  market_type: "MONEYLINE",
+  selection: "France",
+  predicted_probability: 0.58,
+  implied_probability: 0.545,
+  edge_percentage: 3.5,
+  odds_american: -120,
+  recommended_stake: 1.1,
+  expires_at: "2026-07-10T19:00:00Z"
+}
+
+const fifaEdgeMlDetail = {
+  ...fifaEdgeMlListItem,
+  game_external_id: "wc-semi-1",
+  odds_decimal: 1.833,
+  sportsbook_id: null,
+  simulation_probability: 0.57,
+  game: fifaGame,
+  prediction: null,
+  betting_line: {
+    id: "l3",
+    line_value: null,
+    odds_american: -120,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-10T11:55:00Z"
+  },
+  paper_bet: null,
+  analysis: null
+}
+
+const fifaEdgeTotalListItem = {
+  ...fifaEdgeMlListItem,
+  id: FIFA_EDGE_TOTAL_ID,
+  market_type: "TOTAL",
+  selection: "Over 2.5",
+  predicted_probability: 0.52,
+  implied_probability: 0.488,
+  edge_percentage: 3.2,
+  odds_american: 105,
+  recommended_stake: 1.0
+}
+
+const fifaEdgeTotalDetail = {
+  ...fifaEdgeMlDetail,
+  ...fifaEdgeTotalListItem,
+  odds_decimal: 2.05,
+  simulation_probability: 0.51,
+  betting_line: {
+    id: "l4",
+    line_value: 2.5,
+    odds_american: 105,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-10T11:55:00Z"
+  }
+}
+
+delete fifaEdgeMlDetail.home_team
+delete fifaEdgeMlDetail.away_team
+delete fifaEdgeTotalDetail.home_team
+delete fifaEdgeTotalDetail.away_team
+
+// Canned correlation-aware evaluation for the 2-leg same-game FIFA parlay.
+const parlayEvaluation = {
+  legs: [
+    {
+      game_id: FIFA_GAME_ID,
+      game_external_id: "wc-semi-1",
+      market_type: "MONEYLINE",
+      side: "HOME",
+      selection: "France",
+      line_value: null,
+      sportsbook_key: "draftkings",
+      odds_american: -120,
+      odds_decimal: 1.833,
+      predicted_probability: 0.58,
+      sim_leg_key: "ml_home"
+    },
+    {
+      game_id: FIFA_GAME_ID,
+      game_external_id: "wc-semi-1",
+      market_type: "TOTAL",
+      side: "OVER",
+      selection: "Over 2.5",
+      line_value: 2.5,
+      sportsbook_key: "draftkings",
+      odds_american: 105,
+      odds_decimal: 2.05,
+      predicted_probability: 0.52,
+      sim_leg_key: "total_over"
+    }
+  ],
+  league: "FIFA_WC",
+  is_same_game: true,
+  joint_probability: 0.31,
+  independent_probability: 0.269,
+  correlation_edge: 0.041,
+  correlations: { "0-1": 0.35 },
+  combined_odds_american: 264,
+  combined_odds_decimal: 3.64,
+  expected_value: 0.061,
+  ev_pct: 6.1,
+  kelly_fraction: 0.05,
+  recommended_stake: 1.2,
+  method: "simulation_scaled",
+  meets_threshold: true,
+  parlay_id: null,
+  expires_at: "2026-07-10T19:00:00Z"
+}
+
+const parlayDetail = {
+  id: PARLAY_BET_ID,
+  game_id: null,
+  game_external_id: "wc-semi-1",
+  edge_id: null,
+  prediction_id: null,
+  league: "FIFA_WC",
+  market_type: "PARLAY",
+  selection: "France + Over 2.5",
+  side: null,
+  line_value: null,
+  sportsbook_id: null,
+  sportsbook_key: "parlay",
+  odds_american: 264,
+  odds_decimal: 3.64,
+  combined_odds_american: 264,
+  combined_odds_decimal: 3.64,
+  stake: 1.2,
+  stake_dollars: 120,
+  predicted_probability: 0.31,
+  edge_percentage: 3.53,
+  kelly_fraction: 0.05,
+  reasoning: null,
+  is_parlay: true,
+  is_live: false,
+  result: "PENDING",
+  profit_loss: null,
+  profit_loss_dollars: null,
+  clv: null,
+  closing_line_value: null,
+  closing_odds_american: null,
+  grade: null,
+  placed_at: "2026-07-10T12:05:00Z",
+  graded_at: null,
+  legs: [
+    {
+      id: "aaaaaaa1-1111-4111-8111-aaaaaaaaaaa1",
+      game_id: FIFA_GAME_ID,
+      game_external_id: "wc-semi-1",
+      league: "FIFA_WC",
+      leg_index: 0,
+      leg_status: "PENDING",
+      market_type: "MONEYLINE",
+      side: "HOME",
+      selection: "France",
+      line_value: null,
+      odds_american: -120,
+      odds_decimal: 1.833
+    },
+    {
+      id: "aaaaaaa2-2222-4222-8222-aaaaaaaaaaa2",
+      game_id: FIFA_GAME_ID,
+      game_external_id: "wc-semi-1",
+      league: "FIFA_WC",
+      leg_index: 1,
+      leg_status: "PENDING",
+      market_type: "TOTAL",
+      side: "OVER",
+      selection: "Over 2.5",
+      line_value: 2.5,
+      odds_american: 105,
+      odds_decimal: 2.05
+    }
+  ]
+}
+
 const movement = [
   {
     game_id: "odds-stub-game-1",
@@ -305,6 +500,9 @@ const dashboard = {
 
 let lastBet = null
 const placedBets = []
+let lastParlay = null
+const placedParlays = []
+let lastEvaluate = null
 
 const server = createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
@@ -337,13 +535,45 @@ const server = createServer((req, res) => {
     return
   }
 
+  if (req.method === "POST" && path === "/api/v1/agent/parlays/evaluate") {
+    let raw = ""
+    req.on("data", (chunk) => (raw += chunk))
+    req.on("end", () => {
+      lastEvaluate = JSON.parse(raw || "{}")
+      respond(200, { data: parlayEvaluation, meta })
+    })
+    return
+  }
+
+  if (req.method === "POST" && path === "/api/v1/emulator/parlays") {
+    let raw = ""
+    req.on("data", (chunk) => (raw += chunk))
+    req.on("end", () => {
+      lastParlay = {
+        idempotencyKey: req.headers["x-idempotency-key"] ?? null,
+        body: JSON.parse(raw || "{}")
+      }
+      placedParlays.push(lastParlay)
+      respond(201, { data: parlayDetail, meta })
+    })
+    return
+  }
+
   if (path === "/__last-bet") return respond(200, lastBet ?? {})
   if (path === "/__placed-bets") return respond(200, placedBets)
+  if (path === "/__last-parlay") return respond(200, lastParlay ?? {})
+  if (path === "/__placed-parlays") return respond(200, placedParlays)
+  if (path === "/__last-evaluate") return respond(200, lastEvaluate ?? {})
   if (path === "/api/v1/agent/dashboard") return envelope(dashboard)
   if (path === "/api/v1/agent/alerts") return paged([])
-  if (path === "/api/v1/agent/edges") return paged([edgeListItem, soccerEdgeListItem])
+  if (path === "/api/v1/agent/edges")
+    return paged([edgeListItem, soccerEdgeListItem, fifaEdgeMlListItem, fifaEdgeTotalListItem])
   if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
   if (path === `/api/v1/agent/edges/${SOCCER_EDGE_ID}`) return envelope(soccerEdgeDetail)
+  if (path === `/api/v1/agent/edges/${FIFA_EDGE_ML_ID}`) return envelope(fifaEdgeMlDetail)
+  if (path === `/api/v1/agent/edges/${FIFA_EDGE_TOTAL_ID}`) return envelope(fifaEdgeTotalDetail)
+  if (path === `/api/v1/emulator/parlays/${PARLAY_BET_ID}`) return envelope(parlayDetail)
+  if (path === `/api/v1/emulator/bets/${PARLAY_BET_ID}`) return envelope(parlayDetail)
   if (path === "/api/v1/agent/slate") return envelope(slate)
   if (path === "/api/v1/emulator/bets") return paged(lastBet ? [placedBet] : [])
   if (path === `/api/v1/emulator/bets/${BET_ID}`)

@@ -522,9 +522,22 @@ export interface components {
         [key: string]: string
       }
     }
+    /** @description Soccer season block (Phase 7 Wave 0), populated alongside the basketball-shaped season_stats for SOCCER leagues. Feeds player-prop rate modeling. */
+    SoccerPlayerSeasonStats: {
+      season?: number
+      appearances?: number
+      minutes?: number
+      goals?: number
+      assists?: number
+      shots?: number
+      shots_on_target?: number
+      yellow_cards?: number
+      red_cards?: number
+    }
     PlayerDetail: components["schemas"]["PlayerSummary"] & {
       experience_years?: number
       season_stats?: components["schemas"]["PlayerSeasonStats"]
+      soccer_season_stats?: components["schemas"]["SoccerPlayerSeasonStats"]
     }
     PlayerListResponse: {
       data: components["schemas"]["PlayerSummary"][]
@@ -630,11 +643,32 @@ export interface components {
         assists?: number
         turnovers?: number
       }
+      /** @description Basketball player lines (populated when sport=BASKETBALL). */
       players?: components["schemas"]["PlayerBoxScore"][]
+      /** @description Soccer player lines (populated when sport=SOCCER). */
+      soccer_players?: components["schemas"]["SoccerPlayerBoxScore"][]
+    }
+    SoccerPlayerBoxScore: {
+      /** Format: uuid */
+      player_id?: string
+      player_name?: string
+      position?: string
+      minutes?: number
+      goals?: number
+      assists?: number
+      shots?: number
+      shots_on_target?: number
+      yellow_cards?: number
+      red_cards?: number
     }
     BoxScore: {
       /** Format: uuid */
       game_id?: string
+      /**
+       * @description Discriminator selecting which per-sport player array each team carries. BASEBALL/FOOTBALL/HOCKEY are added at their Phase 7 prop waves.
+       * @enum {string}
+       */
+      sport?: "BASKETBALL" | "SOCCER"
       status?: string
       home_team?: components["schemas"]["TeamBoxScore"]
       away_team?: components["schemas"]["TeamBoxScore"]

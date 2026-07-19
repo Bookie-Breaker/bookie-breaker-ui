@@ -111,6 +111,32 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/sim/simulations/{simulation_id}/correlations": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Simulation Correlations
+     * @description Get the same-game parlay correlation artifact for a simulation run.
+     *
+     *     Returns leg marginals and the pairwise phi correlation matrix over the
+     *     canonical leg vocabulary; with ?legs= the empirical joint probability of
+     *     the requested leg set (the exact Monte Carlo joint, not a copula
+     *     approximation). Poisson-grid sports (soccer/hockey) also expose the
+     *     analytic joint goal grid.
+     */
+    get: operations["get_simulation_correlations_api_v1_sim_simulations__simulation_id__correlations_get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/sim/simulations/{simulation_id}/distributions": {
     parameters: {
       query?: never
@@ -211,6 +237,40 @@ export interface components {
       /** Mean Total */
       mean_total: number
     }
+    /**
+     * CorrelationsData
+     * @description Same-game parlay correlation artifact for one simulation run (Phase 7 Wave 1).
+     *
+     *     ``legs`` uses the canonical leg vocabulary (``MONEYLINE:HOME``,
+     *     ``SPREAD:HOME:-1.5``, ``TOTAL:OVER:2.5``, ...; lines rendered with %g).
+     *     ``matrix`` is the pairwise phi/Pearson correlation matrix aligned with
+     *     ``legs`` (unit diagonal; zero-variance legs correlate 0.0 with everything).
+     *     ``joint_probability`` is present only when specific legs were requested:
+     *     the empirical Monte Carlo probability that ALL requested legs hit in the
+     *     same iteration (pushes count as misses). ``joint_goal_grid`` is the
+     *     analytic joint score PMF (rows = home score) for Poisson-grid sports
+     *     (soccer regulation, hockey pre-OT regulation); null elsewhere.
+     */
+    CorrelationsData: {
+      /** Game Id */
+      game_id: string
+      /** Iterations */
+      iterations: number
+      /** Joint Goal Grid */
+      joint_goal_grid?: number[][] | null
+      /** Joint Probability */
+      joint_probability?: number | null
+      /** Legs */
+      legs: string[]
+      /** Marginals */
+      marginals: {
+        [key: string]: number
+      }
+      /** Matrix */
+      matrix: number[][]
+      /** Simulation Run Id */
+      simulation_run_id: string
+    }
     /** Distribution */
     Distribution: {
       /** Max */
@@ -247,6 +307,11 @@ export interface components {
     /** Envelope[BatchData] */
     Envelope_BatchData_: {
       data: components["schemas"]["BatchData"]
+      meta: components["schemas"]["Meta"]
+    }
+    /** Envelope[CorrelationsData] */
+    Envelope_CorrelationsData_: {
+      data: components["schemas"]["CorrelationsData"]
       meta: components["schemas"]["Meta"]
     }
     /** Envelope[DistributionsData] */
@@ -611,6 +676,41 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["Envelope_SimulationRunData_"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_simulation_correlations_api_v1_sim_simulations__simulation_id__correlations_get: {
+    parameters: {
+      query?: {
+        /** @description Comma-separated canonical leg keys (e.g. 'MONEYLINE:HOME,TOTAL:OVER:2.5'). When given, the response is restricted to those legs and includes their empirical joint probability. Omit for the full default artifact. */
+        legs?: string | null
+      }
+      header?: never
+      path: {
+        /** @description The simulation run identifier. */
+        simulation_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["Envelope_CorrelationsData_"]
         }
       }
       /** @description Validation Error */

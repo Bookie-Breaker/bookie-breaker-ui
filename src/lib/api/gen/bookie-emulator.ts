@@ -134,6 +134,49 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/emulator/parlays": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Place Parlay
+     * @description Place a parlay (2-6 team-market legs), capturing per-leg odds from
+     *     lines-service and pricing the parent at the product of leg decimals.
+     *
+     *     Replaying an X-Idempotency-Key returns the existing parlay with 200 OK.
+     */
+    post: operations["place_parlay_api_v1_emulator_parlays_post"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/emulator/parlays/{bet_id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Parlay
+     * @description Get a parlay parent with its legs, per-leg statuses, and grade when settled.
+     */
+    get: operations["get_parlay_api_v1_emulator_parlays__bet_id__get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/emulator/performance": {
     parameters: {
       query?: never
@@ -163,7 +206,8 @@ export interface paths {
     }
     /**
      * Get Breakdown
-     * @description Performance broken down by league, market type, sportsbook, or month.
+     * @description Performance broken down by league, market type, sportsbook, month, or
+     *     bet class (single | parlay | prop | live; precedence parlay > prop > live).
      */
     get: operations["get_breakdown_api_v1_emulator_performance_breakdown_get"]
     put?: never
@@ -262,7 +306,7 @@ export interface components {
        * Game Id
        * Format: uuid
        */
-      game_id: string
+      game_id: string | null
       /**
        * Graded At
        * Format: date-time
@@ -273,6 +317,16 @@ export interface components {
        * Format: uuid
        */
       id: string
+      /**
+       * Is Live
+       * @default false
+       */
+      is_live: boolean
+      /**
+       * Is Parlay
+       * @default false
+       */
+      is_parlay: boolean
       /** Kelly Fraction */
       kelly_fraction: number
       /** Line Value */
@@ -288,6 +342,8 @@ export interface components {
        * Format: date-time
        */
       placed_at: string
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
       /**
@@ -299,6 +355,8 @@ export interface components {
       profit_loss: number | null
       /** Profit Loss Dollars */
       profit_loss_dollars: number | null
+      /** Prop Type */
+      prop_type?: string | null
       /** Reasoning */
       reasoning: string | null
       /**
@@ -309,7 +367,7 @@ export interface components {
       /** Selection */
       selection: string
       /** Side */
-      side: string
+      side: string | null
       /**
        * Sportsbook Id
        * Format: uuid
@@ -321,6 +379,8 @@ export interface components {
       stake: number
       /** Stake Dollars */
       stake_dollars: number
+      /** Stat Type */
+      stat_type?: string | null
     }
     /** BetDetailData */
     BetDetailData: {
@@ -343,7 +403,7 @@ export interface components {
        * Game Id
        * Format: uuid
        */
-      game_id: string
+      game_id: string | null
       grade: components["schemas"]["GradeData"] | null
       /**
        * Graded At
@@ -355,6 +415,16 @@ export interface components {
        * Format: uuid
        */
       id: string
+      /**
+       * Is Live
+       * @default false
+       */
+      is_live: boolean
+      /**
+       * Is Parlay
+       * @default false
+       */
+      is_parlay: boolean
       /** Kelly Fraction */
       kelly_fraction: number
       /** Line Value */
@@ -370,6 +440,8 @@ export interface components {
        * Format: date-time
        */
       placed_at: string
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
       /**
@@ -381,6 +453,8 @@ export interface components {
       profit_loss: number | null
       /** Profit Loss Dollars */
       profit_loss_dollars: number | null
+      /** Prop Type */
+      prop_type?: string | null
       /** Reasoning */
       reasoning: string | null
       /**
@@ -391,7 +465,7 @@ export interface components {
       /** Selection */
       selection: string
       /** Side */
-      side: string
+      side: string | null
       /**
        * Sportsbook Id
        * Format: uuid
@@ -403,6 +477,8 @@ export interface components {
       stake: number
       /** Stake Dollars */
       stake_dollars: number
+      /** Stat Type */
+      stat_type?: string | null
     }
     /** BreakdownData */
     BreakdownData: {
@@ -412,7 +488,7 @@ export interface components {
        * Group By
        * @enum {string}
        */
-      group_by: "league" | "market_type" | "sportsbook" | "month"
+      group_by: "league" | "market_type" | "sportsbook" | "month" | "bet_class"
     }
     /** BreakdownEntry */
     BreakdownEntry: {
@@ -497,6 +573,11 @@ export interface components {
     /** Envelope[HealthData] */
     Envelope_HealthData_: {
       data: components["schemas"]["HealthData"]
+      meta: components["schemas"]["Meta"]
+    }
+    /** Envelope[ParlayDetailData] */
+    Envelope_ParlayDetailData_: {
+      data: components["schemas"]["ParlayDetailData"]
       meta: components["schemas"]["Meta"]
     }
     /** Envelope[PerformanceData] */
@@ -642,6 +723,186 @@ export interface components {
       /** Next Cursor */
       next_cursor?: string | null
     }
+    /**
+     * ParlayDetailData
+     * @description A parlay parent with its legs. combined_odds_* mirror the parent's
+     *     odds fields: the price captured at placement (product of leg decimals).
+     */
+    ParlayDetailData: {
+      /** Closing Line Value */
+      closing_line_value: number | null
+      /** Closing Odds American */
+      closing_odds_american: number | null
+      /** Clv */
+      clv: number | null
+      /** Combined Odds American */
+      combined_odds_american: number
+      /** Combined Odds Decimal */
+      combined_odds_decimal: number
+      /**
+       * Edge Id
+       * Format: uuid
+       */
+      edge_id: string | null
+      /** Edge Percentage */
+      edge_percentage: number
+      /** Game External Id */
+      game_external_id: string
+      /**
+       * Game Id
+       * Format: uuid
+       */
+      game_id: string | null
+      grade: components["schemas"]["GradeData"] | null
+      /**
+       * Graded At
+       * Format: date-time
+       */
+      graded_at: string | null
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /**
+       * Is Live
+       * @default false
+       */
+      is_live: boolean
+      /**
+       * Is Parlay
+       * @default false
+       */
+      is_parlay: boolean
+      /** Kelly Fraction */
+      kelly_fraction: number
+      /** Legs */
+      legs: components["schemas"]["ParlayLegData"][]
+      /** Line Value */
+      line_value: number | null
+      /** Market Type */
+      market_type: string
+      /** Odds American */
+      odds_american: number
+      /** Odds Decimal */
+      odds_decimal: number
+      /**
+       * Placed At
+       * Format: date-time
+       */
+      placed_at: string
+      /** Player External Id */
+      player_external_id?: string | null
+      /** Predicted Probability */
+      predicted_probability: number
+      /**
+       * Prediction Id
+       * Format: uuid
+       */
+      prediction_id: string | null
+      /** Profit Loss */
+      profit_loss: number | null
+      /** Profit Loss Dollars */
+      profit_loss_dollars: number | null
+      /** Prop Type */
+      prop_type?: string | null
+      /** Reasoning */
+      reasoning: string | null
+      /**
+       * Result
+       * @enum {string}
+       */
+      result: "PENDING" | "WIN" | "LOSS" | "PUSH" | "VOID"
+      /** Selection */
+      selection: string
+      /** Side */
+      side: string | null
+      /**
+       * Sportsbook Id
+       * Format: uuid
+       */
+      sportsbook_id: string | null
+      /** Sportsbook Key */
+      sportsbook_key: string
+      /** Stake */
+      stake: number
+      /** Stake Dollars */
+      stake_dollars: number
+      /** Stat Type */
+      stat_type?: string | null
+    }
+    /** ParlayLegData */
+    ParlayLegData: {
+      /** Game External Id */
+      game_external_id: string
+      /**
+       * Game Id
+       * Format: uuid
+       */
+      game_id: string | null
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string
+      /** League */
+      league: string
+      /** Leg Index */
+      leg_index: number
+      /**
+       * Leg Status
+       * @enum {string}
+       */
+      leg_status: "PENDING" | "WIN" | "LOSS" | "PUSH" | "VOID"
+      /** Line Value */
+      line_value: number | null
+      /** Market Type */
+      market_type: string
+      /** Odds American */
+      odds_american: number
+      /** Odds Decimal */
+      odds_decimal: number
+      /** Selection */
+      selection: string
+      /** Side */
+      side: string | null
+    }
+    /**
+     * ParlayLegRequest
+     * @description One leg of a parlay placement (ADR-028). v1 accepts team markets only.
+     *
+     *     Business rules with pinned 422 semantics (prop markets, duplicate or
+     *     opposite-side legs) are enforced in the service layer, not here: pydantic
+     *     validation surfaces as 400 VALIDATION_ERROR in this API.
+     */
+    ParlayLegRequest: {
+      /** Game External Id */
+      game_external_id?: string | null
+      /**
+       * Game Id
+       * Format: uuid
+       */
+      game_id: string
+      /**
+       * Line Value
+       * @description Advisory only: the line captured from lines-service at placement is authoritative.
+       */
+      line_value?: number | null
+      /**
+       * Market Type
+       * @enum {string}
+       */
+      market_type: "SPREAD" | "TOTAL" | "MONEYLINE" | "PLAYER_PROP" | "TEAM_PROP" | "GAME_PROP"
+      /** Selection */
+      selection: string
+      /**
+       * Side
+       * @enum {string}
+       */
+      side: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER"
+      /** Sportsbook Key */
+      sportsbook_key?: string | null
+    }
     /** PerformanceData */
     PerformanceData: {
       /** Avg Clv */
@@ -723,7 +984,9 @@ export interface components {
        * Market Type
        * @enum {string}
        */
-      market_type: "SPREAD" | "TOTAL" | "MONEYLINE"
+      market_type: "SPREAD" | "TOTAL" | "MONEYLINE" | "PLAYER_PROP" | "TEAM_PROP" | "GAME_PROP"
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
       /**
@@ -731,6 +994,11 @@ export interface components {
        * Format: uuid
        */
       prediction_id?: string | null
+      /**
+       * Prop Type
+       * @enum {string|null}
+       */
+      prop_type?: "OVER_UNDER" | "YES_NO" | null
       /** Reasoning */
       reasoning?: string | null
       /** Selection */
@@ -739,9 +1007,35 @@ export interface components {
        * Side
        * @enum {string}
        */
-      side: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER"
+      side: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | "YES" | "NO"
       /** Sportsbook Key */
       sportsbook_key?: string | null
+      /**
+       * Stake
+       * @description Stake in units. Must fit the available bankroll (checked at placement).
+       */
+      stake: number
+      /** Stat Type */
+      stat_type?: string | null
+    }
+    /** PlaceParlayRequest */
+    PlaceParlayRequest: {
+      /**
+       * Edge Percentage
+       * @description Edge in percentage points (4.2 = 4.2%).
+       */
+      edge_percentage: number
+      /** Kelly Fraction */
+      kelly_fraction?: number | null
+      /** Legs */
+      legs: components["schemas"]["ParlayLegRequest"][]
+      /**
+       * Predicted Probability
+       * @description Joint probability of every leg winning.
+       */
+      predicted_probability: number
+      /** Reasoning */
+      reasoning?: string | null
       /**
        * Stake
        * @description Stake in units. Must fit the available bankroll (checked at placement).
@@ -843,7 +1137,8 @@ export interface operations {
           | "NCAA_HKY"
           | null
         /** @description Filter by market type. */
-        market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
+        market_type?:
+          "SPREAD" | "TOTAL" | "MONEYLINE" | "PLAYER_PROP" | "TEAM_PROP" | "GAME_PROP" | null
         /** @description Filter by result. */
         result?: "PENDING" | "WIN" | "LOSS" | "PUSH" | "VOID" | null
         /** @description Start date (ISO 8601), inclusive, on placed_at. */
@@ -852,6 +1147,8 @@ export interface operations {
         date_to?: string | null
         /** @description Minimum edge percentage. */
         min_edge?: number | null
+        /** @description true for parlay parents only, false to exclude them. */
+        is_parlay?: boolean | null
         /** @description open for pending, graded for completed, or all. */
         status?: "open" | "graded" | "all"
         /** @description Max results per page. */
@@ -1009,6 +1306,74 @@ export interface operations {
       }
     }
   }
+  place_parlay_api_v1_emulator_parlays_post: {
+    parameters: {
+      query?: never
+      header: {
+        /** @description UUID preventing duplicate placement on retries. */
+        "x-idempotency-key": string
+      }
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PlaceParlayRequest"]
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["Envelope_ParlayDetailData_"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_parlay_api_v1_emulator_parlays__bet_id__get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        /** @description The parlay parent bet identifier. */
+        bet_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["Envelope_ParlayDetailData_"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
   get_performance_api_v1_emulator_performance_get: {
     parameters: {
       query?: {
@@ -1026,7 +1391,8 @@ export interface operations {
           | "NCAA_HKY"
           | null
         /** @description Filter by market type. */
-        market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
+        market_type?:
+          "SPREAD" | "TOTAL" | "MONEYLINE" | "PLAYER_PROP" | "TEAM_PROP" | "GAME_PROP" | null
         /** @description Start date (ISO 8601) on placed_at. */
         date_from?: string | null
         /** @description End date (ISO 8601) on placed_at. */
@@ -1064,7 +1430,7 @@ export interface operations {
     parameters: {
       query?: {
         /** @description Grouping dimension. */
-        group_by?: "league" | "market_type" | "sportsbook" | "month"
+        group_by?: "league" | "market_type" | "sportsbook" | "month" | "bet_class"
         /** @description Start date (ISO 8601) on placed_at. */
         date_from?: string | null
         /** @description End date (ISO 8601) on placed_at. */
@@ -1113,7 +1479,8 @@ export interface operations {
           | "NCAA_HKY"
           | null
         /** @description Filter by market type. */
-        market_type?: "SPREAD" | "TOTAL" | "MONEYLINE" | null
+        market_type?:
+          "SPREAD" | "TOTAL" | "MONEYLINE" | "PLAYER_PROP" | "TEAM_PROP" | "GAME_PROP" | null
         /** @description Start date (ISO 8601) on placed_at. */
         date_from?: string | null
         /** @description End date (ISO 8601) on placed_at. */

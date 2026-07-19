@@ -228,6 +228,12 @@ export interface components {
       selection: string
       /** @enum {string} */
       side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | "YES" | "NO"
+      /** @description External player id for prop markets (ADR-029); omitted otherwise. */
+      player_id?: string
+      /** @description Canonical prop stat key (the raw odds-source market key, e.g. player_shots_on_target). */
+      stat_type?: string
+      /** @enum {string} */
+      prop_type?: "OVER_UNDER" | "YES_NO"
       line_value?: number | null
       odds_american: number
       odds_decimal: number
@@ -277,6 +283,11 @@ export interface components {
       market_type?: string
       selection?: string
       side?: string
+      /** @description External player id for prop markets (ADR-029); omitted otherwise. */
+      player_id?: string
+      stat_type?: string
+      /** @enum {string} */
+      prop_type?: "OVER_UNDER" | "YES_NO"
       line_value?: number | null
       best_odds_american?: number
       best_odds_decimal?: number
@@ -303,6 +314,11 @@ export interface components {
       sportsbook_key?: string
       market_type?: string
       selection?: string
+      /** @description External player id for prop markets (ADR-029); omitted otherwise. */
+      player_id?: string
+      stat_type?: string
+      /** @enum {string} */
+      prop_type?: "OVER_UNDER" | "YES_NO"
       line_value?: number | null
       odds_american?: number
       odds_decimal?: number
