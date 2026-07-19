@@ -1,6 +1,12 @@
 <script lang="ts">
   import StatCard from "$lib/components/common/StatCard.svelte"
-  import { formatAmerican, formatDateTime, formatProbability, formatUnits } from "$lib/utils/format"
+  import {
+    formatAmerican,
+    formatDateTime,
+    formatLine,
+    formatProbability,
+    formatUnits
+  } from "$lib/utils/format"
 
   let { data } = $props()
 
@@ -13,10 +19,15 @@
   <a href="/bets" class="anchor text-sm">← Ledger</a>
   <h1 class="mt-1 text-2xl font-bold">
     {bet.selection}
+    {#if bet.is_parlay}
+      <span class="badge preset-tonal-primary ml-2 align-middle text-sm">PARLAY</span>
+    {/if}
     <span class="badge preset-tonal ml-2 align-middle text-sm">{bet.result}</span>
   </h1>
   <p class="text-sm opacity-70">
-    {bet.market_type} · {bet.side} · {bet.sportsbook_key} · placed {formatDateTime(bet.placed_at)}
+    {bet.market_type} · {bet.side ?? "—"} · {bet.sportsbook_key} · placed {formatDateTime(
+      bet.placed_at
+    )}
     {#if bet.edge_id}
       · <a href="/edges/{bet.edge_id}" class="anchor">source edge</a>
     {/if}
@@ -49,6 +60,40 @@
       : "no closing line captured"}
   />
 </div>
+
+{#if data.parlayLegs}
+  <section class="card preset-outlined-surface-200-800 mb-6 p-4">
+    <h2 class="mb-2 font-semibold">Legs</h2>
+    <div class="overflow-x-auto">
+      <table class="table w-full text-sm">
+        <thead>
+          <tr class="text-left opacity-60">
+            <th class="p-2">#</th>
+            <th class="p-2">Selection</th>
+            <th class="p-2">Market</th>
+            <th class="p-2 text-right">Line</th>
+            <th class="p-2 text-right">Odds</th>
+            <th class="p-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each data.parlayLegs as leg (leg.id)}
+            <tr class="border-surface-200-800 border-t">
+              <td class="p-2">{leg.leg_index + 1}</td>
+              <td class="p-2 font-medium whitespace-nowrap">{leg.selection}</td>
+              <td class="p-2">{leg.market_type} {leg.side ?? "—"}</td>
+              <td class="p-2 text-right font-mono">{formatLine(leg.line_value)}</td>
+              <td class="p-2 text-right font-mono">{formatAmerican(leg.odds_american)}</td>
+              <td class="p-2">
+                <span class="badge preset-tonal text-xs">{leg.leg_status}</span>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{/if}
 
 {#if bet.grade}
   <section class="card preset-outlined-surface-200-800 p-4">

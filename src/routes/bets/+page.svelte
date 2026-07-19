@@ -145,9 +145,12 @@
           <tr class="hover:preset-tonal border-surface-200-800 border-t">
             <td class="p-2 whitespace-nowrap">
               <a href="/bets/{bet.id}" class="anchor font-medium">{bet.selection}</a>
+              {#if bet.is_parlay}
+                <span class="badge preset-tonal-primary ml-1 text-xs">PARLAY</span>
+              {/if}
             </td>
-            <td class="p-2">{bet.market_type}</td>
-            <td class="p-2">{bet.sportsbook_key}</td>
+            <td class="p-2">{bet.is_parlay ? "—" : bet.market_type}</td>
+            <td class="p-2">{bet.is_parlay ? "—" : bet.sportsbook_key}</td>
             <td class="p-2 text-right font-mono">{formatAmerican(bet.odds_american)}</td>
             <td class="p-2 text-right font-mono">{bet.stake.toFixed(2)}u</td>
             <td class="p-2 text-right font-mono">

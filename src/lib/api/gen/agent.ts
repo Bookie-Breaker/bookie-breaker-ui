@@ -197,6 +197,33 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/agent/parlays/evaluate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Evaluate Parlay
+     * @description Evaluate a 2-6 leg team-market parlay with correlation-aware math.
+     *
+     *     Same-game legs use the simulation engine's joint outcome structure
+     *     (falling back to documented correlation priors); distinct games
+     *     multiply as independent. meets_threshold evaluations are persisted and
+     *     published to events:parlay.detected; persist=true also stores
+     *     below-threshold evaluations. Returns 422 for mixed-league leg sets,
+     *     mutually exclusive legs, or unsupported (prop) markets.
+     */
+    post: operations["evaluate_parlay_api_v1_agent_parlays_evaluate_post"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/agent/pipeline/run": {
     parameters: {
       query?: never
@@ -560,6 +587,11 @@ export interface components {
       data: components["schemas"]["HealthData"]
       meta: components["schemas"]["Meta"]
     }
+    /** Envelope[ParlayEvaluationData] */
+    Envelope_ParlayEvaluationData_: {
+      data: components["schemas"]["ParlayEvaluationData"]
+      meta: components["schemas"]["Meta"]
+    }
     /** Envelope[PipelineRunAcceptedData] */
     Envelope_PipelineRunAcceptedData_: {
       data: components["schemas"]["PipelineRunAcceptedData"]
@@ -683,6 +715,102 @@ export interface components {
       limit: number
       /** Next Cursor */
       next_cursor?: string | null
+    }
+    /** ParlayEvaluateRequest */
+    ParlayEvaluateRequest: {
+      /** Legs */
+      legs: components["schemas"]["ParlayLegRequest"][]
+      /**
+       * Parlay Odds American
+       * @description Offered SGP price; omitted -> product of leg decimals.
+       */
+      parlay_odds_american?: number | null
+      /**
+       * Persist
+       * @description Persist the evaluation even when it misses the EV threshold.
+       * @default false
+       */
+      persist: boolean
+    }
+    /** ParlayEvaluationData */
+    ParlayEvaluationData: {
+      /** Combined Odds American */
+      combined_odds_american: number
+      /** Combined Odds Decimal */
+      combined_odds_decimal: number
+      /** Correlation Edge */
+      correlation_edge: number
+      /** Correlations */
+      correlations: {
+        [key: string]: number
+      }
+      /** Ev Pct */
+      ev_pct: number
+      /** Expected Value */
+      expected_value: number
+      /** Expires At */
+      expires_at: string
+      /** Independent Probability */
+      independent_probability: number
+      /** Is Same Game */
+      is_same_game: boolean
+      /** Joint Probability */
+      joint_probability: number
+      /** Kelly Fraction */
+      kelly_fraction: number
+      /** League */
+      league: string
+      /** Legs */
+      legs: components["schemas"]["ParlayLegData"][]
+      /** Meets Threshold */
+      meets_threshold: boolean
+      /** Method */
+      method: string
+      /** Parlay Id */
+      parlay_id: string | null
+      /** Recommended Stake */
+      recommended_stake: number
+    }
+    /** ParlayLegData */
+    ParlayLegData: {
+      /** Game External Id */
+      game_external_id: string
+      /** Game Id */
+      game_id: string
+      /** Line Value */
+      line_value: number | null
+      /** Market Type */
+      market_type: string
+      /** Odds American */
+      odds_american: number
+      /** Odds Decimal */
+      odds_decimal: number
+      /** Predicted Probability */
+      predicted_probability: number
+      /** Selection */
+      selection: string
+      /** Side */
+      side: string
+      /** Sim Leg Key */
+      sim_leg_key?: string | null
+      /** Sportsbook Key */
+      sportsbook_key: string
+    }
+    /** ParlayLegRequest */
+    ParlayLegRequest: {
+      /**
+       * Game External Id
+       * @description lines-service external game id
+       */
+      game_external_id: string
+      /** Line Value */
+      line_value?: number | null
+      /** Market Type */
+      market_type: string
+      /** Side */
+      side: string
+      /** Sportsbook Key */
+      sportsbook_key?: string | null
     }
     /** PerformanceSummary */
     PerformanceSummary: {
@@ -1236,6 +1364,39 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["Envelope_HealthData_"]
+        }
+      }
+    }
+  }
+  evaluate_parlay_api_v1_agent_parlays_evaluate_post: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ParlayEvaluateRequest"]
+      }
+    }
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["Envelope_ParlayEvaluationData_"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
         }
       }
     }

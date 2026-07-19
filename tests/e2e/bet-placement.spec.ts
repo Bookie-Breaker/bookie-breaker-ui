@@ -12,12 +12,19 @@ test.describe("bet placement", () => {
     await page.getByRole("button", { name: "Place paper bet" }).click()
     await expect(page.getByText(/Bet placed: LAL -3\.5/)).toBeVisible()
 
-    // the stub captured the placement: idempotency key forwarded verbatim
-    const lastBet = await (await request.get("http://localhost:9200/__last-bet")).json()
-    expect(lastBet.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/)
-    expect(lastBet.body.side).toBe("HOME")
-    expect(lastBet.body.edge_id).toBe("11111111-1111-4111-8111-111111111111")
-    expect(lastBet.body.edge_percentage).toBeCloseTo(4.2)
+    // the stub captured the placement: idempotency key forwarded verbatim.
+    // /__placed-bets is append-only, so parallel projects cannot clobber it.
+    const placed = (await (await request.get("http://localhost:9200/__placed-bets")).json()) as {
+      idempotencyKey: string
+      body: { side: string; edge_id: string | null; edge_percentage: number }
+    }[]
+    const homeBet = placed.find(
+      (bet) => bet.body.edge_id === "11111111-1111-4111-8111-111111111111"
+    )
+    expect(homeBet).toBeTruthy()
+    expect(homeBet?.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/)
+    expect(homeBet?.body.side).toBe("HOME")
+    expect(homeBet?.body.edge_percentage).toBeCloseTo(4.2)
   })
 
   test("derives DRAW from a three-way moneyline edge and offers it only there", async ({

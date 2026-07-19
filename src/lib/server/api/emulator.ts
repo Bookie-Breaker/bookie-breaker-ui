@@ -8,8 +8,10 @@ import type {
   CalibrationData,
   Envelope,
   PageEnvelope,
+  ParlayDetailData,
   PerformanceData,
-  PlaceBetRequest
+  PlaceBetRequest,
+  PlaceParlayRequest
 } from "$lib/api/envelope"
 import { serviceUrl } from "$lib/server/env"
 import { upstream, type QueryParams } from "$lib/server/http"
@@ -47,6 +49,28 @@ export function placeBet(
     body,
     headers: { "X-Idempotency-Key": idempotencyKey }
   })
+}
+
+/** Place a parlay (2-6 team-market legs); replaying an idempotency key is safe. */
+export function placeParlay(
+  fetchFn: typeof fetch,
+  body: PlaceParlayRequest,
+  idempotencyKey: string
+): Promise<Envelope<ParlayDetailData>> {
+  return upstream(base(), "/api/v1/emulator/parlays", {
+    fetchFn,
+    method: "POST",
+    body,
+    headers: { "X-Idempotency-Key": idempotencyKey }
+  })
+}
+
+/** A parlay parent with its legs, per-leg statuses, and grade when settled. */
+export function getParlay(
+  fetchFn: typeof fetch,
+  betId: string
+): Promise<Envelope<ParlayDetailData>> {
+  return upstream(base(), `/api/v1/emulator/parlays/${encodeURIComponent(betId)}`, { fetchFn })
 }
 
 export function getBets(

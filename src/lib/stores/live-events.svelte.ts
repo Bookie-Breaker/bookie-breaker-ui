@@ -13,6 +13,7 @@ const DEBOUNCE_MS = 1_500
 
 export const EVENT_INVALIDATIONS: Record<string, string[]> = {
   "edge.detected": ["app:edges", "app:dashboard", "app:slate"],
+  "parlay.detected": ["app:parlays"],
   "bet.graded": ["app:bets", "app:performance", "app:dashboard"],
   "lines.updated": ["app:lines", "app:slate"],
   "prediction.completed": ["app:slate", "app:edges"],
@@ -92,6 +93,13 @@ class LiveEvents {
         href: payload.edge_id ? `/edges/${String(payload.edge_id)}` : undefined,
         tone: "success"
       })
+    } else if (event === "parlay.detected") {
+      // ev_pct is already percentage points in this payload (redis-schemas.md).
+      const ev = Number(payload.ev_pct ?? 0)
+      toasts.add(
+        `Parlay detected: ${String(payload.leg_count ?? "?")}-leg ${String(payload.league ?? "?")} +${ev.toFixed(1)}% EV`,
+        { href: "/parlay", tone: "success" }
+      )
     } else if (event === "bet.graded") {
       const result = String(payload.result ?? "?")
       toasts.add(`Bet graded ${result}: ${String(payload.selection ?? "?")}`, {
