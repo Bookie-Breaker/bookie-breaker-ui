@@ -1,8 +1,23 @@
 <script lang="ts">
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import { formatDate, formatDateTime, formatProbability } from "$lib/utils/format"
+  import { isPlayerProp, propView, type PropEdgeFields } from "$lib/utils/props"
 
   let { data } = $props()
+
+  type SlateEdge = (typeof data.slate.games)[number]["edges"][number]
+
+  const gameLineEdges = (edges: SlateEdge[]) => edges.filter((edge) => !isPlayerProp(edge))
+  const propEdges = (edges: SlateEdge[]) => edges.filter((edge) => isPlayerProp(edge))
+
+  /** Compact chip label for a prop edge: "Bukayo Saka Shots OVER 2.5". */
+  function propChipLabel(edge: SlateEdge): string {
+    const prop = propView(edge as SlateEdge & PropEdgeFields)
+    const parts = [prop.player, prop.statLabel ?? "prop"]
+    if (prop.side) parts.push(prop.side)
+    if (prop.line !== null) parts.push(String(prop.line))
+    return parts.join(" ")
+  }
 </script>
 
 <svelte:head><title>Slate · BookieBreaker</title></svelte:head>
@@ -15,11 +30,19 @@
 {:else}
   <div class="grid gap-4 lg:grid-cols-2">
     {#each data.slate.games as game (game.game_id)}
+      {@const props = propEdges(game.edges)}
+      {@const gameLines = gameLineEdges(game.edges)}
       <div class="card preset-outlined-surface-200-800 p-4">
         <div class="flex items-start justify-between gap-2">
           <div>
             <p class="font-semibold">
               {game.away_team.name} @ {game.home_team.name}
+              {#if props.length > 0}
+                <span class="badge preset-tonal ml-1 align-middle text-xs">
+                  {props.length}
+                  {props.length === 1 ? "prop" : "props"}
+                </span>
+              {/if}
             </p>
             <p class="text-xs opacity-60">
               {game.league} · {formatDateTime(game.scheduled_start)} · {game.status}
@@ -34,7 +57,7 @@
         </div>
         {#if game.edges.length > 0}
           <div class="mt-3 flex flex-wrap gap-2">
-            {#each game.edges as edge (edge.id)}
+            {#each gameLines as edge (edge.id)}
               <a
                 href="/edges/{edge.id}"
                 class="badge {edge.has_paper_bet
@@ -43,6 +66,14 @@
               >
                 {edge.market_type}
                 {edge.selection} +{edge.edge_percentage.toFixed(1)}% @ {edge.sportsbook_key}
+              </a>
+            {/each}
+            {#each props as edge (edge.id)}
+              <a
+                href="/edges/{edge.id}"
+                class="badge {edge.has_paper_bet ? 'preset-tonal-primary' : 'preset-tonal'} text-xs"
+              >
+                {propChipLabel(edge)} +{edge.edge_percentage.toFixed(1)}% @ {edge.sportsbook_key}
               </a>
             {/each}
           </div>

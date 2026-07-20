@@ -10,9 +10,11 @@ import {
   calibrationFixture,
   distributionFixture,
   featureImportanceFixture,
-  lineMovementFixture
+  lineMovementFixture,
+  playerShotsDistributionFixture
 } from "$lib/charts/fixtures"
 import { lineMovementOption } from "$lib/charts/line-movement"
+import { playerDistributionOption } from "$lib/charts/player-distribution"
 import { roiOption } from "$lib/charts/roi"
 import { chartTheme } from "$lib/charts/theme"
 import { winRateClvOption } from "$lib/charts/win-rate-clv"
@@ -61,6 +63,43 @@ describe("distributionOption", () => {
     expect(data[data.length - 1][0]).toBe(20)
     const marks = option.series[0].markLine.data as { xAxis: number }[]
     expect(marks.map((m) => m.xAxis)).toEqual([4.1, -3.5])
+  })
+})
+
+describe("playerDistributionOption", () => {
+  it("sorts discrete values and marks the mean and prop line", () => {
+    const option = playerDistributionOption(playerShotsDistributionFixture, theme, {
+      propLine: 2.5
+    }) as AnyOption
+    const data = option.series[0].data as { value: [number, number] }[]
+    expect(data[0].value[0]).toBe(0)
+    expect(data[data.length - 1].value[0]).toBe(6)
+    const marks = option.series[0].markLine.data as { xAxis: number }[]
+    expect(marks.map((m) => m.xAxis)).toEqual([2.6, 2.5])
+    expect(option.xAxis.minInterval).toBe(1)
+  })
+
+  it("highlights the bars clearing the prop line", () => {
+    const option = playerDistributionOption(playerShotsDistributionFixture, theme, {
+      propLine: 2.5
+    }) as AnyOption
+    const data = option.series[0].data as {
+      value: [number, number]
+      itemStyle: { color: string }
+    }[]
+    for (const point of data) {
+      expect(point.itemStyle.color).toBe(point.value[0] > 2.5 ? theme.success : theme.primary)
+    }
+  })
+
+  it("omits the prop-line mark and highlight without a line (yes/no props)", () => {
+    const option = playerDistributionOption(playerShotsDistributionFixture, theme) as AnyOption
+    const marks = option.series[0].markLine.data as { xAxis: number }[]
+    expect(marks.map((m) => m.xAxis)).toEqual([2.6])
+    const data = option.series[0].data as { itemStyle: { color: string } }[]
+    for (const point of data) {
+      expect(point.itemStyle.color).toBe(theme.primary)
+    }
   })
 })
 

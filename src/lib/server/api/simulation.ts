@@ -1,5 +1,10 @@
 /** Thin typed wrappers over the simulation-engine REST API (port 8003). */
-import type { DistributionsData, Envelope, SimulationRun } from "$lib/api/envelope"
+import type {
+  DistributionsData,
+  Envelope,
+  PlayerDistributionsData,
+  SimulationRun
+} from "$lib/api/envelope"
 import { serviceUrl } from "$lib/server/env"
 import { upstream } from "$lib/server/http"
 
@@ -24,5 +29,18 @@ export function getDistributions(
       fetchFn,
       query: { distribution_type: distributionType }
     }
+  )
+}
+
+/** Per-player stat distributions for a run (Phase 7 Wave 3; 404 when not captured). */
+export function getPlayerDistributions(
+  fetchFn: typeof fetch,
+  simulationId: string,
+  query: { player_id?: string; stat_type?: string } = {}
+): Promise<Envelope<PlayerDistributionsData>> {
+  return upstream(
+    base(),
+    `/api/v1/sim/simulations/${encodeURIComponent(simulationId)}/player-distributions`,
+    { fetchFn, query }
   )
 }

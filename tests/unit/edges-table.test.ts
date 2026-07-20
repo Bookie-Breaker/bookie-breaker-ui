@@ -26,6 +26,7 @@ function edge(overrides: Partial<EdgeListItem>): EdgeListItem {
     detected_at: "2026-07-05T12:00:00Z",
     expires_at: "2026-07-05T19:00:00Z",
     is_stale: false,
+    is_live: false,
     has_paper_bet: false,
     paper_bet_id: null,
     ...overrides

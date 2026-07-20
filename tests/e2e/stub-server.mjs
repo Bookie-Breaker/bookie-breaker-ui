@@ -117,6 +117,184 @@ const soccerEdgeDetail = {
 delete soccerEdgeDetail.home_team
 delete soccerEdgeDetail.away_team
 
+// Phase 7 Wave 3: PLAYER_PROP edges on the EPL game. The structured prop
+// fields (player_external_id slug, stat_type, prop_type) ride on the payload
+// ahead of the agent spec regen — the UI reads them when present and falls
+// back to parsing the selection string.
+const PROP_EDGE_OU_ID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+const PROP_EDGE_YES_ID = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+const PROP_SIM_RUN_ID = "ffffffff-ffff-4fff-8fff-ffffffffffff"
+
+const propShotsEdgeListItem = {
+  ...soccerEdgeListItem,
+  id: PROP_EDGE_OU_ID,
+  market_type: "PLAYER_PROP",
+  selection: "Bukayo Saka Over 2.5",
+  player_external_id: "bukayo-saka",
+  stat_type: "player_shots",
+  prop_type: "OVER_UNDER",
+  predicted_probability: 0.56,
+  implied_probability: 0.5,
+  edge_percentage: 6.0,
+  expected_value: 0.093,
+  odds_american: -105,
+  recommended_stake: 1.2
+}
+
+const propShotsEdgeDetail = {
+  ...propShotsEdgeListItem,
+  game_external_id: "odds-stub-game-2",
+  odds_decimal: 1.952,
+  sportsbook_id: null,
+  simulation_probability: 0.5,
+  game: soccerEdgeDetail.game,
+  prediction: null,
+  betting_line: {
+    id: "l6",
+    line_value: 2.5,
+    odds_american: -105,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-05T11:55:00Z"
+  },
+  paper_bet: null,
+  analysis: null
+}
+
+const propGoalscorerEdgeListItem = {
+  ...soccerEdgeListItem,
+  id: PROP_EDGE_YES_ID,
+  market_type: "PLAYER_PROP",
+  selection: "Gabriel Jesus Anytime Goalscorer Yes",
+  player_external_id: "gabriel-jesus",
+  stat_type: "player_goal_scorer_anytime",
+  prop_type: "YES_NO",
+  predicted_probability: 0.42,
+  implied_probability: 0.37,
+  edge_percentage: 5.0,
+  expected_value: 0.135,
+  odds_american: 170,
+  recommended_stake: 0.8
+}
+
+const propGoalscorerEdgeDetail = {
+  ...propGoalscorerEdgeListItem,
+  game_external_id: "odds-stub-game-2",
+  odds_decimal: 2.7,
+  sportsbook_id: null,
+  simulation_probability: 0.38,
+  game: soccerEdgeDetail.game,
+  prediction: null,
+  betting_line: {
+    id: "l7",
+    line_value: null,
+    odds_american: 170,
+    sportsbook_key: "draftkings",
+    timestamp: "2026-07-05T11:55:00Z"
+  },
+  paper_bet: null,
+  analysis: null
+}
+
+for (const detail of [propShotsEdgeDetail, propGoalscorerEdgeDetail]) {
+  delete detail.home_team
+  delete detail.away_team
+}
+
+// Latest simulation run for the EPL game, captured with player props. Team
+// distributions stay 404 so the "Simulation expired" states keep a fixture.
+const propSimulationRun = {
+  simulation_run_id: PROP_SIM_RUN_ID,
+  game_id: SOCCER_GAME_ID,
+  status: "COMPLETED",
+  iterations_completed: 10000,
+  converged: true,
+  cached: false,
+  duration_ms: 812,
+  parameters_hash: "stub-hash",
+  batch_id: null,
+  started_at: "2026-07-05T11:50:00Z",
+  completed_at: "2026-07-05T11:50:01Z",
+  config: {
+    iterations: 10000,
+    convergence_threshold: 0.005,
+    include_player_props: true,
+    plugin_config: {}
+  },
+  result: { home_win_probability: 0.44, away_win_probability: 0.3, draw_probability: 0.26 }
+}
+
+const playerDistributions = {
+  simulation_run_id: PROP_SIM_RUN_ID,
+  game_id: SOCCER_GAME_ID,
+  iterations_completed: 10000,
+  players: {
+    "11111111-aaaa-4aaa-8aaa-111111111111": {
+      name: "Bukayo Saka",
+      team: "HOME",
+      stats: {
+        player_shots: {
+          distribution: {
+            type: "discrete",
+            values: { 0: 0.08, 1: 0.18, 2: 0.24, 3: 0.22, 4: 0.15, 5: 0.08, 6: 0.05 },
+            mean: 2.6,
+            std_dev: 1.4,
+            min: 0,
+            max: 6
+          },
+          over_probabilities: { 1.5: 0.74, 2.5: 0.5, 3.5: 0.28 },
+          yes_probability: null
+        },
+        player_shots_on_target: {
+          distribution: {
+            type: "discrete",
+            values: { 0: 0.3, 1: 0.35, 2: 0.22, 3: 0.1, 4: 0.03 },
+            mean: 1.21,
+            std_dev: 1.05,
+            min: 0,
+            max: 4
+          },
+          over_probabilities: { 0.5: 0.7, 1.5: 0.35 },
+          yes_probability: null
+        }
+      }
+    },
+    "22222222-bbbb-4bbb-8bbb-222222222222": {
+      name: "Gabriel Jesus",
+      team: "HOME",
+      stats: {
+        player_goal_scorer_anytime: {
+          distribution: {
+            type: "discrete",
+            values: { 0: 0.62, 1: 0.28, 2: 0.08, 3: 0.02 },
+            mean: 0.5,
+            std_dev: 0.72,
+            min: 0,
+            max: 3
+          },
+          over_probabilities: null,
+          yes_probability: 0.38
+        }
+      }
+    }
+  }
+}
+
+/** Engine-style stat_type/player_id filtering over the canned payload. */
+const filteredPlayerDistributions = (searchParams) => {
+  const statType = searchParams.get("stat_type")
+  const playerId = searchParams.get("player_id")
+  const players = {}
+  for (const [uuid, entry] of Object.entries(playerDistributions.players)) {
+    if (playerId && uuid !== playerId) continue
+    const stats = statType
+      ? Object.fromEntries(Object.entries(entry.stats).filter(([key]) => key === statType))
+      : entry.stats
+    if (Object.keys(stats).length === 0) continue
+    players[uuid] = { ...entry, stats }
+  }
+  return { ...playerDistributions, players }
+}
+
 // Two FIFA_WC edges on ONE game: the same-game parlay the builder spec uses.
 const FIFA_EDGE_ML_ID = "66666666-6666-4666-8666-666666666666"
 const FIFA_EDGE_TOTAL_ID = "77777777-7777-4777-8777-777777777777"
@@ -643,6 +821,49 @@ const slate = {
           has_paper_bet: false
         }
       ]
+    },
+    // Phase 7 Wave 3: an EPL game whose edges include player props, for the
+    // slate's prop chips and per-game prop count badge.
+    {
+      game_id: SOCCER_GAME_ID,
+      league: "EPL",
+      scheduled_start: "2026-07-05T19:00:00Z",
+      status: "SCHEDULED",
+      home_team: { id: "t3", name: "Arsenal", abbreviation: "ARS" },
+      away_team: { id: "t4", name: "Chelsea", abbreviation: "CHE" },
+      prediction: null,
+      edges: [
+        {
+          id: SOCCER_EDGE_ID,
+          market_type: "MONEYLINE",
+          selection: "Draw",
+          edge_percentage: 3.8,
+          sportsbook_key: "draftkings",
+          has_paper_bet: false
+        },
+        {
+          id: PROP_EDGE_OU_ID,
+          market_type: "PLAYER_PROP",
+          selection: "Bukayo Saka Over 2.5",
+          player_external_id: "bukayo-saka",
+          stat_type: "player_shots",
+          prop_type: "OVER_UNDER",
+          edge_percentage: 6.0,
+          sportsbook_key: "draftkings",
+          has_paper_bet: false
+        },
+        {
+          id: PROP_EDGE_YES_ID,
+          market_type: "PLAYER_PROP",
+          selection: "Gabriel Jesus Anytime Goalscorer Yes",
+          player_external_id: "gabriel-jesus",
+          stat_type: "player_goal_scorer_anytime",
+          prop_type: "YES_NO",
+          edge_percentage: 5.0,
+          sportsbook_key: "draftkings",
+          has_paper_bet: false
+        }
+      ]
     }
   ]
 }
@@ -753,8 +974,12 @@ const server = createServer((req, res) => {
       soccerEdgeListItem,
       fifaEdgeMlListItem,
       fifaEdgeTotalListItem,
-      liveEdgeListItem()
+      liveEdgeListItem(),
+      propShotsEdgeListItem,
+      propGoalscorerEdgeListItem
     ])
+  if (path === `/api/v1/agent/edges/${PROP_EDGE_OU_ID}`) return envelope(propShotsEdgeDetail)
+  if (path === `/api/v1/agent/edges/${PROP_EDGE_YES_ID}`) return envelope(propGoalscorerEdgeDetail)
   if (path === `/api/v1/agent/edges/${LIVE_EDGE_ID}`) return envelope(liveEdgeDetail())
   if (path === `/api/v1/agent/edges/${EDGE_ID}`) return envelope(edgeDetail)
   if (path === `/api/v1/agent/edges/${SOCCER_EDGE_ID}`) return envelope(soccerEdgeDetail)
@@ -798,6 +1023,11 @@ const server = createServer((req, res) => {
     return paged([])
   }
   if (path === "/api/v1/lines/game/odds-stub-game-1/movement") return envelope(movement)
+  // Phase 7 Wave 3: the EPL game has a prop-enabled run with player
+  // distributions; team distributions and every other game stay expired.
+  if (path === `/api/v1/sim/games/${SOCCER_GAME_ID}/latest`) return envelope(propSimulationRun)
+  if (path === `/api/v1/sim/simulations/${PROP_SIM_RUN_ID}/player-distributions`)
+    return envelope(filteredPlayerDistributions(url.searchParams))
   if (path.startsWith("/api/v1/sim/games/")) return notFound() // simulations expired
   return notFound()
 })

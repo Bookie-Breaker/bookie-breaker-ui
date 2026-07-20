@@ -76,6 +76,16 @@ export const distributionFixture: Distribution = {
   max: 20
 }
 
+/** One player stat's simulated distribution (Phase 7 Wave 3 prop charts). */
+export const playerShotsDistributionFixture: Distribution = {
+  type: "discrete",
+  values: { "0": 0.08, "1": 0.18, "2": 0.24, "3": 0.22, "4": 0.15, "5": 0.08, "6": 0.05 },
+  mean: 2.6,
+  std_dev: 1.4,
+  min: 0,
+  max: 6
+}
+
 export const bankrollHistoryFixture: BankrollSnapshot[] = Array.from({ length: 30 }, (_, index) => {
   const units = 100 + index * 0.8 + Math.sin(index / 3) * 4
   return {

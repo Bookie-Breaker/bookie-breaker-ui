@@ -373,18 +373,24 @@ export interface components {
       market_type: string
       /** Model Version Id */
       model_version_id: string
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
+      /** Prop Line */
+      prop_line?: number | null
       /** Selection */
       selection: string
       /**
        * Side
-       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions created before Phase 6.
+       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER, YES, NO). Null for predictions created before Phase 6.
        * @enum {string|null}
        */
-      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | null
+      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | "YES" | "NO" | null
       /** Simulation Probability */
       simulation_probability: number | null
+      /** Stat Type */
+      stat_type?: string | null
     }
     /** PredictionGroupData */
     PredictionGroupData: {
@@ -423,18 +429,24 @@ export interface components {
       market_type: string
       /** Model Version Id */
       model_version_id: string
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
+      /** Prop Line */
+      prop_line?: number | null
       /** Selection */
       selection: string
       /**
        * Side
-       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions created before Phase 6.
+       * @description Selection side (HOME, AWAY, DRAW, OVER, UNDER, YES, NO). Null for predictions created before Phase 6.
        * @enum {string|null}
        */
-      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | null
+      side?: "HOME" | "AWAY" | "DRAW" | "OVER" | "UNDER" | "YES" | "NO" | null
       /** Simulation Probability */
       simulation_probability: number | null
+      /** Stat Type */
+      stat_type?: string | null
     }
     /** PredictionRequest */
     PredictionRequest: {
@@ -442,8 +454,47 @@ export interface components {
       game_id: string
       /** Market Types */
       market_types?: ("SPREAD" | "TOTAL" | "MONEYLINE")[]
+      /**
+       * Props
+       * @description Player props to predict (requires a simulation run captured with player stats).
+       */
+      props?: components["schemas"]["PropRequest"][]
       /** Simulation Run Id */
       simulation_run_id: string
+    }
+    /**
+     * PropRequest
+     * @description One requested player prop (Phase 7 Wave 3).
+     *
+     *     line is required for count/yardage stats and must exactly match a
+     *     half-step line in the simulation's over grid; it stays None for yes/no
+     *     stats. side None emits both OVER and UNDER rows (or the single YES row
+     *     for yes/no stats).
+     */
+    PropRequest: {
+      /**
+       * Line
+       * @description Prop line (half-step); null for yes/no stats.
+       */
+      line?: number | null
+      /**
+       * Player External Id
+       * @description The statistics-service player UUID (as a string).
+       */
+      player_external_id: string
+      /** Player Name */
+      player_name?: string | null
+      /**
+       * Side
+       * @description Requested side; null emits both sides (or YES).
+       * @enum {string|null}
+       */
+      side?: "OVER" | "UNDER" | "YES" | "NO" | null
+      /**
+       * Stat Type
+       * @description Canonical prop stat key (Odds API market key), e.g. player_points.
+       */
+      stat_type: string
     }
     /** RetrainConfig */
     RetrainConfig: {

@@ -160,6 +160,33 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/sim/simulations/{simulation_id}/player-distributions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Get Simulation Player Distributions
+     * @description Get per-player stat distributions for a simulation run (Phase 7 Wave 3).
+     *
+     *     Available only for runs created with ``config.include_player_props``; 404
+     *     when props were not captured or the run is no longer the game's latest
+     *     (player distributions are stored latest-wins per game, like
+     *     distributions and correlations). Stat keys are the canonical Odds API
+     *     market keys (ADR-029); YES_NO stats carry ``yes_probability`` instead of
+     *     an over-probability line grid.
+     */
+    get: operations["get_simulation_player_distributions_api_v1_sim_simulations__simulation_id__player_distributions_get"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -217,6 +244,7 @@ export interface components {
       /**
        * @default {
        *       "convergence_threshold": 0.005,
+       *       "include_player_props": false,
        *       "iterations": 10000,
        *       "plugin_config": {}
        *     }
@@ -328,6 +356,11 @@ export interface components {
       data: components["schemas"]["HealthData"]
       meta: components["schemas"]["Meta"]
     }
+    /** Envelope[PlayerDistributionsData] */
+    Envelope_PlayerDistributionsData_: {
+      data: components["schemas"]["PlayerDistributionsData"]
+      meta: components["schemas"]["Meta"]
+    }
     /** Envelope[SimulationRunData] */
     Envelope_SimulationRunData_: {
       data: components["schemas"]["SimulationRunData"]
@@ -431,6 +464,62 @@ export interface components {
         [key: string]: number
       }
     }
+    /**
+     * PlayerDistributionsData
+     * @description Per-player stat distributions for one simulation run (Phase 7 Wave 3).
+     *
+     *     ``players`` is keyed by statistics-service player UUID. Stat keys are the
+     *     canonical Odds API market keys, so downstream services join these to
+     *     market lines without translation. Empty when props were requested but no
+     *     roster data existed (dormant sports, empty upstream rosters).
+     */
+    PlayerDistributionsData: {
+      /** Game Id */
+      game_id: string
+      /** Iterations Completed */
+      iterations_completed: number
+      /** Players */
+      players: {
+        [key: string]: components["schemas"]["PlayerPropsEntry"]
+      }
+      /** Simulation Run Id */
+      simulation_run_id: string
+    }
+    /**
+     * PlayerPropsEntry
+     * @description One player's captured stats keyed by canonical stat key (ADR-029).
+     */
+    PlayerPropsEntry: {
+      /** Name */
+      name: string
+      /** Stats */
+      stats: {
+        [key: string]: components["schemas"]["PlayerStatBlock"]
+      }
+      /**
+       * Team
+       * @enum {string}
+       */
+      team: "HOME" | "AWAY"
+    }
+    /**
+     * PlayerStatBlock
+     * @description Distribution plus market-facing probabilities for one player stat (Phase 7 Wave 3).
+     *
+     *     OVER_UNDER stats carry ``over_probabilities`` — P(count > line) for
+     *     half-point lines around the mean (monotonically non-increasing in the
+     *     line). YES_NO stats (``player_goal_scorer_anytime``, ``player_anytime_td``)
+     *     carry ``yes_probability`` = P(count > 0) instead of a line grid.
+     */
+    PlayerStatBlock: {
+      distribution: components["schemas"]["Distribution"]
+      /** Over Probabilities */
+      over_probabilities?: {
+        [key: string]: number
+      } | null
+      /** Yes Probability */
+      yes_probability?: number | null
+    }
     /** SimulationConfigIn */
     SimulationConfigIn: {
       /**
@@ -438,6 +527,11 @@ export interface components {
        * @default 0.005
        */
       convergence_threshold: number
+      /**
+       * Include Player Props
+       * @default false
+       */
+      include_player_props: boolean
       /**
        * Iterations
        * @default 10000
@@ -466,6 +560,7 @@ export interface components {
       /**
        * @default {
        *       "convergence_threshold": 0.005,
+       *       "include_player_props": false,
        *       "iterations": 10000,
        *       "plugin_config": {}
        *     }
@@ -791,6 +886,43 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["Envelope_DistributionsData_"]
+        }
+      }
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"]
+        }
+      }
+    }
+  }
+  get_simulation_player_distributions_api_v1_sim_simulations__simulation_id__player_distributions_get: {
+    parameters: {
+      query?: {
+        /** @description Restrict to one player (statistics-service player UUID). */
+        player_id?: string | null
+        /** @description Restrict to one canonical stat key (e.g. 'player_points', 'player_shots'). */
+        stat_type?: string | null
+      }
+      header?: never
+      path: {
+        /** @description The simulation run identifier. */
+        simulation_id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "application/json": components["schemas"]["Envelope_PlayerDistributionsData_"]
         }
       }
       /** @description Validation Error */
