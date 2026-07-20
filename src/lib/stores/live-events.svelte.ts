@@ -7,10 +7,16 @@
 import { invalidate, invalidateAll } from "$app/navigation"
 
 import { toasts } from "$lib/stores/toasts.svelte"
+import { liveInvalidationTargets } from "$lib/utils/live"
 import { edgeFractionToPoints } from "$lib/utils/odds"
 
 const DEBOUNCE_MS = 1_500
 
+/**
+ * Static event → invalidation-key routing. lines.updated and edge.detected
+ * payloads flagged is_live additionally invalidate app:live (payload-derived
+ * routing via liveInvalidationTargets — flag only, contents never rendered).
+ */
 export const EVENT_INVALIDATIONS: Record<string, string[]> = {
   "edge.detected": ["app:edges", "app:dashboard", "app:slate"],
   "parlay.detected": ["app:parlays"],
@@ -62,10 +68,16 @@ class LiveEvents {
 
   #handle(event: string, message: MessageEvent): void {
     this.eventCount += 1
-    for (const key of EVENT_INVALIDATIONS[event] ?? []) {
+    let payload: Record<string, unknown> | null = null
+    try {
+      payload = JSON.parse(message.data as string) as Record<string, unknown>
+    } catch {
+      payload = null
+    }
+    for (const key of liveInvalidationTargets(event, payload, EVENT_INVALIDATIONS)) {
       this.#debouncedInvalidate(key)
     }
-    this.#toast(event, message.data as string)
+    if (payload) this.#toast(event, payload)
   }
 
   #debouncedInvalidate(key: string): void {
@@ -80,15 +92,17 @@ class LiveEvents {
     )
   }
 
-  #toast(event: string, raw: string): void {
-    let payload: Record<string, unknown>
-    try {
-      payload = JSON.parse(raw) as Record<string, unknown>
-    } catch {
-      return
-    }
+  #toast(event: string, payload: Record<string, unknown>): void {
     if (event === "edge.detected") {
       const points = edgeFractionToPoints(Number(payload.edge_percentage ?? 0))
+      if (payload.is_live === true) {
+        // Distinct live-edge toast: short-expiry edges live on /live.
+        toasts.add(`Live edge: ${String(payload.selection ?? "?")} +${points.toFixed(1)}%`, {
+          href: "/live",
+          tone: "success"
+        })
+        return
+      }
       toasts.add(`New edge: ${String(payload.selection ?? "?")} +${points.toFixed(1)}%`, {
         href: payload.edge_id ? `/edges/${String(payload.edge_id)}` : undefined,
         tone: "success"

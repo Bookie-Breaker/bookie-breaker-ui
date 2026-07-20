@@ -26,6 +26,8 @@ export interface BetFilters {
   date_from?: string
   date_to?: string
   min_edge?: number
+  /** true for live (in-game) bets only, false for pregame only (Phase 7 Wave 2). */
+  is_live?: boolean
   limit?: number
   cursor?: string
 }

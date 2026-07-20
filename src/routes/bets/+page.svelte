@@ -20,7 +20,7 @@
     void data.bets
     extra = []
     nextCursor = data.nextCursor
-    if (data.prefillEdge) showForm = true
+    if (data.prefillEdge || data.prefillLive) showForm = true
   })
 
   const bets = $derived([...data.bets, ...extra])
@@ -76,7 +76,7 @@
       {data.prefillEdge ? "Bet this edge" : "Place a paper bet"}
     </h2>
     {#key data.prefillEdge?.id}
-      <BetForm edge={data.prefillEdge} />
+      <BetForm edge={data.prefillEdge} live={data.prefillLive} />
     {/key}
   </section>
 {/if}
@@ -119,6 +119,18 @@
       <option value="MONEYLINE">MONEYLINE</option>
     </select>
   </label>
+  <label class="label">
+    <span class="label-text text-xs">Live</span>
+    <select
+      class="select w-32"
+      value={page.url.searchParams.get("is_live") ?? ""}
+      onchange={(event) => setParam("is_live", event.currentTarget.value)}
+    >
+      <option value="">All</option>
+      <option value="true">Live only</option>
+      <option value="false">Pregame</option>
+    </select>
+  </label>
 </div>
 
 {#if bets.length === 0}
@@ -147,6 +159,9 @@
               <a href="/bets/{bet.id}" class="anchor font-medium">{bet.selection}</a>
               {#if bet.is_parlay}
                 <span class="badge preset-tonal-primary ml-1 text-xs">PARLAY</span>
+              {/if}
+              {#if bet.is_live}
+                <span class="badge preset-filled-error-500 ml-1 text-xs">LIVE</span>
               {/if}
             </td>
             <td class="p-2">{bet.is_parlay ? "—" : bet.market_type}</td>

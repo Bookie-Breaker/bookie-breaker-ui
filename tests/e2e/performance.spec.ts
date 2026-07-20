@@ -24,6 +24,7 @@ test.describe("performance viewing", () => {
     await page.goto("/bets")
     await expect(page.getByRole("heading", { name: "Bet ledger" })).toBeVisible()
     await expect(page.getByRole("link", { name: "LAL -3.5" })).toBeVisible()
-    await expect(page.locator("tbody").getByText("PENDING")).toBeVisible()
+    // scope to the placed bet's row: the ledger always carries the canned live bet too
+    await expect(page.getByRole("row", { name: /LAL -3\.5/ }).getByText("PENDING")).toBeVisible()
   })
 })

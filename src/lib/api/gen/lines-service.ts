@@ -240,6 +240,8 @@ export interface components {
       implied_probability: number
       /** Format: date-time */
       timestamp: string
+      /** @description In-game line from the live SSE source (ADR-031). */
+      is_live?: boolean
       is_opening?: boolean
       is_closing?: boolean
     }
@@ -426,6 +428,8 @@ export interface operations {
         game_id?: string
         /** @description Filter by sportsbook key (comma-separated) */
         sportsbook?: string
+        /** @description Filter to live (in-game, SharpAPI-sourced) or pregame lines (ADR-031). */
+        is_live?: boolean
         /** @description Filter by market type (comma-separated) */
         market_type?: string
         /** @description Filter by game date (ISO 8601) */
@@ -485,6 +489,8 @@ export interface operations {
         sportsbook?: string
         /** @description Filter by selection side (e.g. home, away, draw, over, under). */
         side?: string
+        /** @description Filter to live (in-game, SharpAPI-sourced) or pregame lines (ADR-031). */
+        is_live?: boolean
         /** @description Maximum number of items to return per page. */
         limit?: components["parameters"]["Limit"]
         /** @description Opaque pagination cursor from a previous response's meta.next_cursor. */

@@ -18,6 +18,8 @@ export interface CurrentLinesFilters {
   sportsbook?: string
   market_type?: string
   date?: string
+  /** true for in-game (SharpAPI-sourced) lines only, false for pregame (ADR-031). */
+  is_live?: boolean
   limit?: number
   cursor?: string
 }
