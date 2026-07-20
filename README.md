@@ -3,6 +3,10 @@
 Web dashboard for visualizing edges, predictions, line movement, simulation distributions, and paper
 trading performance, with live updates and a streaming LLM analyst chat.
 
+For a guided tour of the dashboard and the full edge-to-bet workflow, see the operator playbooks
+[02-daily-operations](https://github.com/Bookie-Breaker/bookie-breaker-docs/blob/main/playbooks/02-daily-operations.md)
+and [03-finding-and-betting-edges](https://github.com/Bookie-Breaker/bookie-breaker-docs/blob/main/playbooks/03-finding-and-betting-edges.md).
+
 ## Quickstart
 
 ### With Docker Compose (recommended)
