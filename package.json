@@ -13,6 +13,7 @@
     "format": "prettier --config .config/prettierrc.json --write .",
     "format:check": "prettier --config .config/prettierrc.json --check .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
@@ -27,6 +28,7 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^22.20.0",
+    "@vitest/coverage-v8": "^3.2.7",
     "dompurify": "^3.4.11",
     "echarts": "^6.1.0",
     "eslint": "^9.39.4",
@@ -44,7 +46,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.1",
     "vite": "^6.4.3",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.7"
   },
   "dependencies": {
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",
