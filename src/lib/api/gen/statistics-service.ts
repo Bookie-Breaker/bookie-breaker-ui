@@ -534,10 +534,24 @@ export interface components {
       yellow_cards?: number
       red_cards?: number
     }
+    /** @description Baseball season block (Phase 7 Wave 3), populated alongside the basketball-shaped season_stats for MLB. Feeds player-prop rate modeling. */
+    BaseballPlayerSeasonStats: {
+      season?: number
+      games?: number
+      at_bats?: number
+      hits?: number
+      total_bases?: number
+      home_runs?: number
+      batting_avg?: number
+      plate_appearances_per_game?: number
+      strikeouts_per_nine?: number
+      innings_pitched?: number
+    }
     PlayerDetail: components["schemas"]["PlayerSummary"] & {
       experience_years?: number
       season_stats?: components["schemas"]["PlayerSeasonStats"]
       soccer_season_stats?: components["schemas"]["SoccerPlayerSeasonStats"]
+      baseball_season_stats?: components["schemas"]["BaseballPlayerSeasonStats"]
     }
     PlayerListResponse: {
       data: components["schemas"]["PlayerSummary"][]
@@ -647,6 +661,25 @@ export interface components {
       players?: components["schemas"]["PlayerBoxScore"][]
       /** @description Soccer player lines (populated when sport=SOCCER). */
       soccer_players?: components["schemas"]["SoccerPlayerBoxScore"][]
+      /** @description Baseball player lines (populated when sport=BASEBALL). */
+      baseball_players?: components["schemas"]["BaseballPlayerBoxScore"][]
+    }
+    BaseballPlayerBoxScore: {
+      /** Format: uuid */
+      player_id?: string
+      player_name?: string
+      position?: string
+      at_bats?: number
+      hits?: number
+      total_bases?: number
+      home_runs?: number
+      runs_batted_in?: number
+      runs?: number
+      walks?: number
+      strikeouts_batting?: number
+      innings_pitched?: number
+      strikeouts_pitching?: number
+      earned_runs?: number
     }
     SoccerPlayerBoxScore: {
       /** Format: uuid */
@@ -665,10 +698,10 @@ export interface components {
       /** Format: uuid */
       game_id?: string
       /**
-       * @description Discriminator selecting which per-sport player array each team carries. BASEBALL/FOOTBALL/HOCKEY are added at their Phase 7 prop waves.
+       * @description Discriminator selecting which per-sport player array each team carries. FOOTBALL/HOCKEY are added at their season waves.
        * @enum {string}
        */
-      sport?: "BASKETBALL" | "SOCCER"
+      sport?: "BASKETBALL" | "SOCCER" | "BASEBALL"
       status?: string
       home_team?: components["schemas"]["TeamBoxScore"]
       away_team?: components["schemas"]["TeamBoxScore"]

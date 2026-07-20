@@ -4,6 +4,7 @@
   import { lineMovementOption } from "$lib/charts/line-movement"
   import Chart from "$lib/components/charts/Chart.svelte"
   import DistributionsPanel from "$lib/components/charts/DistributionsPanel.svelte"
+  import PlayerDistributionsPanel from "$lib/components/charts/PlayerDistributionsPanel.svelte"
   import EdgeBadge from "$lib/components/common/EdgeBadge.svelte"
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import Markdown from "$lib/components/common/Markdown.svelte"
@@ -11,6 +12,7 @@
   import { pageContext } from "$lib/stores/page-context.svelte"
   import { preferences } from "$lib/stores/preferences.svelte"
   import { formatAmerican, formatDateTime, formatProbability } from "$lib/utils/format"
+  import { isPlayerProp, propView, type PropEdgeFields, type PropSide } from "$lib/utils/props"
 
   let { data } = $props()
 
@@ -26,6 +28,16 @@
       ? `${edge.game.away_team.abbreviation} @ ${edge.game.home_team.abbreviation}`
       : edge.selection
   )
+  // Player-prop presentation (Phase 7 Wave 3): structured fields when the
+  // agent sends them, selection parsing otherwise (see utils/props.ts).
+  const prop = $derived(isPlayerProp(edge) ? propView(edge as typeof edge & PropEdgeFields) : null)
+  const propLine = $derived(prop ? (prop.line ?? edge.betting_line?.line_value ?? null) : null)
+
+  function sideClass(side: PropSide): string {
+    if (side === "YES") return "preset-tonal-success"
+    if (side === "NO") return "preset-tonal-error"
+    return "preset-tonal"
+  }
 </script>
 
 <svelte:head><title>{edge.selection} · BookieBreaker</title></svelte:head>
@@ -33,10 +45,23 @@
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
   <div>
     <h1 class="text-2xl font-bold">
-      {edge.selection}
+      {#if prop}
+        {prop.player}
+        {#if prop.side}
+          <span class="badge {sideClass(prop.side)} ml-1 align-middle text-sm">{prop.side}</span>
+        {/if}
+        {#if propLine !== null}
+          <span class="font-mono">{propLine}</span>
+        {/if}
+      {:else}
+        {edge.selection}
+      {/if}
       <span class="ml-2 align-middle"><EdgeBadge points={edge.edge_percentage} /></span>
     </h1>
     <p class="text-sm opacity-70">
+      {#if prop}
+        {prop.statLabel ?? "Player prop"} ·
+      {/if}
       {matchup} · {edge.league} · {edge.market_type} · {edge.sportsbook_key} ·
       {formatDateTime(edge.game?.scheduled_start ?? edge.expires_at)}
       {#if edge.is_stale}
@@ -108,8 +133,19 @@
 </div>
 
 <section class="card preset-outlined-surface-200-800 mt-6 p-4">
-  <h2 class="mb-2 font-semibold">Simulation distributions</h2>
-  <DistributionsPanel gameId={edge.game_id} marketLine={edge.betting_line?.line_value ?? null} />
+  {#if prop}
+    <h2 class="mb-2 font-semibold">Player simulation distribution</h2>
+    <PlayerDistributionsPanel
+      gameId={edge.game_id}
+      playerName={prop.player}
+      slug={prop.slug}
+      statType={prop.statKey}
+      {propLine}
+    />
+  {:else}
+    <h2 class="mb-2 font-semibold">Simulation distributions</h2>
+    <DistributionsPanel gameId={edge.game_id} marketLine={edge.betting_line?.line_value ?? null} />
+  {/if}
 </section>
 
 <section class="card preset-outlined-surface-200-800 mt-6 p-4">

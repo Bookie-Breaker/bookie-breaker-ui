@@ -10,6 +10,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest"
 import { POST as chatPost } from "../../src/routes/api/chat/+server"
 import { GET as eventsGet } from "../../src/routes/api/events/+server"
 import { GET as distributionsGet } from "../../src/routes/api/simulations/[gameId]/distributions/+server"
+import { GET as playerDistributionsGet } from "../../src/routes/api/simulations/[gameId]/player-distributions/+server"
 import { POST as betsPost } from "../../src/routes/api/bets/+server"
 import { POST as parlayEvaluatePost } from "../../src/routes/api/parlays/evaluate/+server"
 import { POST as parlayPlacePost } from "../../src/routes/api/parlays/place/+server"
@@ -210,6 +211,61 @@ describe("GET /api/simulations/[gameId]/distributions", () => {
       })
     )
     const response = await distributionsGet(makeEvent({ params: { gameId: "game-2" } }))
+    expect(response.status).toBe(200)
+  })
+})
+
+describe("GET /api/simulations/[gameId]/player-distributions", () => {
+  const makePlayerEvent = (gameId: string, search = "") =>
+    makeEvent({
+      params: { gameId },
+      url: new URL(`http://ui/api/simulations/${gameId}/player-distributions${search}`)
+    })
+
+  it("maps an expired simulation to a 404 error envelope", async () => {
+    server.use(
+      http.get(`${SIM}/api/v1/sim/games/game-1/latest`, () =>
+        HttpResponse.json(
+          { error: { code: "RESOURCE_NOT_FOUND", message: "no simulation" }, meta: {} },
+          { status: 404 }
+        )
+      )
+    )
+    const response = await playerDistributionsGet(makePlayerEvent("game-1"))
+    expect(response.status).toBe(404)
+  })
+
+  it("passes a props-not-captured 404 from the engine through", async () => {
+    server.use(
+      http.get(`${SIM}/api/v1/sim/games/game-3/latest`, () =>
+        HttpResponse.json({ data: { simulation_run_id: "sim-7" }, meta: {} })
+      ),
+      http.get(`${SIM}/api/v1/sim/simulations/sim-7/player-distributions`, () =>
+        HttpResponse.json(
+          { error: { code: "RESOURCE_NOT_FOUND", message: "props not captured" }, meta: {} },
+          { status: 404 }
+        )
+      )
+    )
+    const response = await playerDistributionsGet(makePlayerEvent("game-3"))
+    expect(response.status).toBe(404)
+  })
+
+  it("chains latest -> player-distributions, forwarding the stat_type filter", async () => {
+    server.use(
+      http.get(`${SIM}/api/v1/sim/games/game-2/latest`, () =>
+        HttpResponse.json({ data: { simulation_run_id: "sim-9" }, meta: {} })
+      ),
+      http.get(`${SIM}/api/v1/sim/simulations/sim-9/player-distributions`, ({ request }) => {
+        const params = new URL(request.url).searchParams
+        expect(params.get("stat_type")).toBe("player_shots")
+        expect(params.get("player_id")).toBeNull()
+        return HttpResponse.json({ data: { players: {} }, meta: {} })
+      })
+    )
+    const response = await playerDistributionsGet(
+      makePlayerEvent("game-2", "?stat_type=player_shots")
+    )
     expect(response.status).toBe(200)
   })
 })

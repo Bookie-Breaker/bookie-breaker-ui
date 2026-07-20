@@ -2,8 +2,15 @@
   import type { EdgeListItem } from "$lib/api/envelope"
   import EdgeBadge from "$lib/components/common/EdgeBadge.svelte"
   import { formatAmerican, formatDateTime, formatProbability } from "$lib/utils/format"
+  import { isPlayerProp, propView, type PropEdgeFields, type PropSide } from "$lib/utils/props"
 
   let { edges }: { edges: EdgeListItem[] } = $props()
+
+  function sideClass(side: PropSide): string {
+    if (side === "YES") return "preset-tonal-success"
+    if (side === "NO") return "preset-tonal-error"
+    return "preset-tonal"
+  }
 </script>
 
 <div class="table-wrap overflow-x-auto">
@@ -33,8 +40,21 @@
             <span class="ml-1 text-xs opacity-60">{edge.league}</span>
           </td>
           <td class="p-2 whitespace-nowrap">
-            <span class="badge preset-tonal mr-1 text-xs">{edge.market_type}</span>
-            {edge.selection}
+            {#if isPlayerProp(edge)}
+              {@const prop = propView(edge as EdgeListItem & PropEdgeFields)}
+              <span class="badge preset-tonal mr-1 text-xs">PROP</span>
+              <span class="font-medium">{prop.player}</span>
+              {#if prop.side}
+                <span class="badge {sideClass(prop.side)} ml-1 text-xs">{prop.side}</span>
+              {/if}
+              {#if prop.line !== null}
+                <span class="ml-1 font-mono">{prop.line}</span>
+              {/if}
+              <div class="text-xs opacity-60">{prop.statLabel ?? "Player prop"}</div>
+            {:else}
+              <span class="badge preset-tonal mr-1 text-xs">{edge.market_type}</span>
+              {edge.selection}
+            {/if}
           </td>
           <td class="p-2">{edge.sportsbook_key}</td>
           <td class="p-2 text-right font-mono">{formatAmerican(edge.odds_american)}</td>

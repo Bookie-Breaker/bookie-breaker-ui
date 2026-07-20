@@ -515,6 +515,11 @@ export interface components {
       id: string
       /** Implied Probability */
       implied_probability: number
+      /**
+       * Is Live
+       * @default false
+       */
+      is_live: boolean
       /** Is Stale */
       is_stale: boolean
       /** Kelly Fraction */
@@ -527,8 +532,12 @@ export interface components {
       odds_american: number
       /** Paper Bet Id */
       paper_bet_id: string | null
+      /** Player External Id */
+      player_external_id?: string | null
       /** Predicted Probability */
       predicted_probability: number
+      /** Prop Type */
+      prop_type?: string | null
       /** Recommended Stake */
       recommended_stake: number
       /** Scheduled Start */
@@ -537,6 +546,8 @@ export interface components {
       selection: string
       /** Sportsbook Key */
       sportsbook_key: string
+      /** Stat Type */
+      stat_type?: string | null
     }
     /** EdgePaperBet */
     EdgePaperBet: {

@@ -5,6 +5,7 @@
   import type { EdgeListItem, PageEnvelope } from "$lib/api/envelope"
   import EmptyState from "$lib/components/common/EmptyState.svelte"
   import EdgesTable from "$lib/components/tables/EdgesTable.svelte"
+  import { isPlayerProp } from "$lib/utils/props"
 
   let { data } = $props()
 
@@ -22,6 +23,12 @@
     "NCAA_HKY"
   ]
   const MARKETS = ["", "SPREAD", "TOTAL", "MONEYLINE"]
+  // Market-class tabs (Phase 7 Wave 3): game lines vs player props.
+  const MARKET_CLASSES = [
+    { value: "", label: "All" },
+    { value: "game", label: "Game lines" },
+    { value: "props", label: "Player props" }
+  ]
   type SortKey = "edge" | "ev" | "confidence" | "start"
 
   let sortKey = $state<SortKey>("edge")
@@ -43,12 +50,33 @@
     start: (a, b) => a.scheduled_start.localeCompare(b.scheduled_start)
   }
 
-  const edges = $derived([...data.edges, ...extra].toSorted(sorters[sortKey]))
+  const marketClass = $derived(page.url.searchParams.get("market_class") ?? "")
+
+  // Client-side market-class predicate on top of the upstream filter, so
+  // paged-in rows and agents that ignore the query param stay consistent.
+  const edges = $derived(
+    [...data.edges, ...extra]
+      .filter((edge) => {
+        if (marketClass === "props") return isPlayerProp(edge)
+        if (marketClass === "game") return !edge.market_type.endsWith("PROP")
+        return true
+      })
+      .toSorted(sorters[sortKey])
+  )
 
   function setParam(key: string, value: string): void {
     const params = new URLSearchParams(page.url.searchParams)
     if (value) params.set(key, value)
     else params.delete(key)
+    goto(`/edges?${params}`, { keepFocus: true, noScroll: true })
+  }
+
+  function setMarketClass(value: string): void {
+    const params = new URLSearchParams(page.url.searchParams)
+    if (value) params.set("market_class", value)
+    else params.delete("market_class")
+    // The market select covers game-line markets only; drop it on the props tab.
+    if (value === "props") params.delete("market_type")
     goto(`/edges?${params}`, { keepFocus: true, noScroll: true })
   }
 
@@ -73,6 +101,21 @@
 
 <h1 class="mb-4 text-2xl font-bold">Edges</h1>
 
+<div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Market class">
+  {#each MARKET_CLASSES as option (option.value)}
+    <button
+      type="button"
+      class="btn btn-sm {marketClass === option.value
+        ? 'preset-filled-primary-500'
+        : 'preset-tonal'}"
+      aria-pressed={marketClass === option.value}
+      onclick={() => setMarketClass(option.value)}
+    >
+      {option.label}
+    </button>
+  {/each}
+</div>
+
 <div class="mb-4 flex flex-wrap items-end gap-3">
   <label class="label">
     <span class="label-text text-xs">League</span>
@@ -86,18 +129,20 @@
       {/each}
     </select>
   </label>
-  <label class="label">
-    <span class="label-text text-xs">Market</span>
-    <select
-      class="select w-36"
-      value={page.url.searchParams.get("market_type") ?? ""}
-      onchange={(event) => setParam("market_type", event.currentTarget.value)}
-    >
-      {#each MARKETS as market (market)}
-        <option value={market}>{market || "All"}</option>
-      {/each}
-    </select>
-  </label>
+  {#if marketClass !== "props"}
+    <label class="label">
+      <span class="label-text text-xs">Market</span>
+      <select
+        class="select w-36"
+        value={page.url.searchParams.get("market_type") ?? ""}
+        onchange={(event) => setParam("market_type", event.currentTarget.value)}
+      >
+        {#each MARKETS as market (market)}
+          <option value={market}>{market || "All"}</option>
+        {/each}
+      </select>
+    </label>
+  {/if}
   <label class="label">
     <span class="label-text text-xs">Min edge %</span>
     <input
@@ -122,7 +167,7 @@
 
 {#if edges.length === 0}
   <EmptyState
-    title="No edges right now"
+    title={marketClass === "props" ? "No player-prop edges right now" : "No edges right now"}
     message="Run the pipeline or loosen the filters to find edges."
   />
 {:else}

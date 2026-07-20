@@ -94,6 +94,9 @@ export type Sportsbook = lines["schemas"]["Sportsbook"]
 export type SimulationRun = simulation["schemas"]["SimulationRunData"]
 export type DistributionsData = simulation["schemas"]["DistributionsData"]
 export type Distribution = simulation["schemas"]["Distribution"]
+export type PlayerDistributionsData = simulation["schemas"]["PlayerDistributionsData"]
+export type PlayerPropsEntry = simulation["schemas"]["PlayerPropsEntry"]
+export type PlayerStatBlock = simulation["schemas"]["PlayerStatBlock"]
 
 // prediction-engine
 export type PredictionDetail = prediction["schemas"]["PredictionDetailData"]
